@@ -14,8 +14,7 @@
     <main class="container-fluid p-2" id="content">
         <label for="char-ct">Number of Characters:
         </label>
-        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
-            placeholder="Number of Characters" maxlength="2" min="3" max="50" value="10">
+        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em" placeholder="10" maxlength="2" min="3" max="50" value="10">
 
         <form method="POST" enctype="multipart/form-data" id="upload-img">
             <label for="avatar-file">Upload Pictures for Characters (starting from <input type="number" id="char-sel"
