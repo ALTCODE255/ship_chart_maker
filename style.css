@@ -1,0 +1,46 @@
+.circle {
+  --radius: 200px;
+  aspect-ratio: 1;
+  position: relative;
+}
+
+.ship-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.icon {
+  position: absolute;
+  width: min(calc((85 / var(--total-num)) * 14px), 100px);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(var(--angle))
+    translateY(calc(-1.5 * var(--radius))) rotate(calc(-1 * var(--angle)));
+  z-index: 1;
+}
+
+.selected {
+  box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 12px 20px;
+    margin-top: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.swatch {
+    width: 1.25em;
+    height: 1.25em;
+    background: var(--color);
+}

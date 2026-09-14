@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="darkreader-lock">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shipping Chart Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="./style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <main class="animate-in container-fluid p-2" id="content">
+        <label for="char-ct">Number of Characters:
+            </label>
+        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
+            placeholder="Number of Characters" maxlength="2" min="3" max="50" value="10">
+
+        <form method="POST" enctype="multipart/form-data" id="upload-img">
+            <label for="avatar-file">Upload Pictures for Characters (starting from <input type="number" id="char-sel" style="width:3rem" min="1" value=1 placeholder="1" maxlength="2">):
+            </label>
+            <input name="avatar-file" id="avatar-sel" type="file" accept="image/*" multiple>
+            <br>
+            <input type="submit" value="Upload">
+        </form>
+
+        <button onclick="clearCharacters();" class="btn btn-primary">Clear All Characters</button>
+        <button onclick="clearAllLines();" class="btn btn-primary">Clear Relationship Lines</button>
+
+        <div class="row">
+            <div class="col-2">
+                <div class="vstack legend">
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #FF0000"></button>Favorite
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #EBA72A"></button>Really Like
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #F2DD1F"></button>Like
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #38EB38"></button>OK
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #4393EE"></button>No Strong
+                        Feelings
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #343435"></button>Dislike
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #831ECB"></button>I'm Scared
+                    </div>
+                    <hr>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #FF6F89"></button>Romantic
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #6FFFFA"></button>Platonic or
+                        Romantic
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #D84DFF"></button>Comedic
+                    </div>
+                    <div class="legend-item">
+                        <button onclick="switchColor(this)" class="swatch" style="--color: #ADC12D"></button>Familial
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="circle w-50 mx-auto my-auto">
+                    <svg class="ship-lines"></svg>
+                </div>
+            </div>
+        </div>
+
+    </main>
+    <script src="./chart.js"></script>
+    <script>
+        updateCharacters();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
