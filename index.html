@@ -21,13 +21,17 @@
             <label for="avatar-file">Upload Pictures for Characters (starting from <input type="number" id="char-sel"
                     style="width:3rem" min="1" value=1 placeholder="1" maxlength="2">):
             </label>
-            <input name="avatar-file" id="avatar-sel" type="file" accept="image/*" multiple>
             <br>
-            <input type="submit" value="Upload">
+            <div class="my-2">
+                <input name="avatar-file" id="avatar-sel" type="file" accept="image/*" multiple>
+                <input type="submit" value="Upload">
+            </div>
         </form>
 
-        <button onclick="clearCharacters();" class="btn btn-primary">Clear All Characters</button>
-        <button onclick="clearAllLines();" class="btn btn-primary">Clear Relationship Lines</button>
+        <div class="my-2">
+            <button onclick="clearCharacters();" class="btn btn-primary">Clear All Characters</button>
+            <button onclick="clearAllLines();" class="btn btn-primary">Clear Relationship Lines</button>
+        </div>
 
         <div class="d-flex my-2">
             <div class="legend-container">
