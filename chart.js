@@ -118,7 +118,7 @@ function updateCharacters() {
   let iconHtml = "<svg class='ship-lines'></svg>";
   selectedChar = null;
 
-  for (let i = 0; i < charCount.value; i++) {
+  for (let i = 0; i < charCount.value && i < charCount.max; i++) {
     iconHtml += `<a href="javascript:selectChar(${i})"><img src="./unknown.png" class="icon"></a>`;
   }
 
