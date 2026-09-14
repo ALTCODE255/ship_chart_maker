@@ -126,7 +126,7 @@ function updateCharacters() {
     icon.style.setProperty("--angle", `${angle}deg`);
   });
 
-  charSel.max = Number(charCount.value);
+  charSel.max = charCount.value;
 
   // Load any previously saved images
   icons.forEach((icon, i) => {
@@ -156,6 +156,7 @@ function uploadImage(e) {
 
   Array.from(avatarSel.files).forEach((file, i) => {
     const idx = charSel.value - 1 + i;
+    if (idx >= charCount) return;
 
     // Display image immediately
     const imageSrc = URL.createObjectURL(file);
