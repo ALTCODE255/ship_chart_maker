@@ -133,7 +133,7 @@ function updateCharacters() {
     icon.style.setProperty("--angle", `${angle}deg`);
   });
 
-  charSel.max = charCount.value;
+  charSel.max = min(charCount.value, charCount.max);
 
   // Load any previously saved images
   icons.forEach((icon, i) => {
