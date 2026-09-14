@@ -91,21 +91,26 @@ function drawShipLine(char1, char2, path_offset) {
   theta = Math.atan2(ry - my, rx - mx);
 
   // Control point
-  var cx = mx + offset * Math.cos(theta);
-  var cy = my + offset * Math.sin(theta);
+  cx = mx + offset * Math.cos(theta);
+  cy = my + offset * Math.sin(theta);
+
+  // Translation offset (to avoid stacking paths)
+  tx = path_offset * 3 * Math.cos(theta);
+  ty = path_offset * 3 * Math.sin(theta);
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
   path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
   path.setAttribute("fill", "none");
   path.setAttribute("stroke", color);
-  path.setAttribute("stroke-width", "2");
-  path.setAttribute("transform", `translate(${path_offset * 2}, 0)`);
+  path.setAttribute("stroke-width", "3");
+  path.setAttribute("transform", `translate(${tx}, ${ty})`);
 
-  const existingPath = document.querySelector("path");
-  if (!existingPath) {
-    svg.appendChild(path);
-  } else existingPath.parentNode.insertBefore(path, existingPath);
+  path.addEventListener("click", () => {
+    path.remove();
+  });
+
+  svg.appendChild(path);
 }
 
 function updateCharacters() {
