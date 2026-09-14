@@ -12,9 +12,34 @@
 
 <body>
     <main class="container-fluid p-2" id="content">
+        <h1>Ship Chart Maker</h1>
+        <details>
+            <summary class="h5">Instructions</summary>
+            <ol>
+                <li>Specify the desired <b>number of characters</b> (3-50).</li>
+                <li>
+                    <b>Upload one or more images</b> to represent the characters, then click "Upload."
+                    <ul>
+                        <li>By default, images are arranged clockwise around the circle, starting at the <b>12
+                                o'clock</b> position (character <code>1</code>).</li>
+                        <li>To upload images individually, select one file at a time and increment the "starting from
+                            <code>1</code>" value for each upload.</li>
+                    </ul>
+                </li>
+                <li>Choose a line type by clicking its <b>color swatch/legend</b>.</li>
+                <li>
+                    Click two character images to <b>connect them with a line</b>.
+                    <ul>
+                        <li>Click a line to remove it.</li>
+                        <li>Multiple lines of different colors can connect the same two characters.</li>
+                    </ul>
+                </li>
+            </ol>
+        </details>
         <label for="char-ct">Number of Characters:
         </label>
-        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em" placeholder="10" maxlength="2" min="3" max="50" value="10">
+        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
+            placeholder="10" maxlength="2" min="3" max="50" value="10">
 
         <form method="POST" enctype="multipart/form-data" id="upload-img">
             <label for="avatar-file">Upload Pictures for Characters (starting from <input type="number" id="char-sel"
