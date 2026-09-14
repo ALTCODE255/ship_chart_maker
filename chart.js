@@ -108,6 +108,7 @@ function drawShipLine(char1, char2, path_offset) {
 
   path.addEventListener("click", () => {
     path.remove();
+    ships.pop([char1, char2, color]);
   });
 
   svg.appendChild(path);
