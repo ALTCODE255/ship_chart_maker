@@ -14,10 +14,10 @@
   --bs-body-font-size: 1rem;
   --bs-body-font-weight: 500;
   --bs-body-line-height: 1.6;
-  --bs-body-color: var(--bs-light);
-  --bs-body-color-rgb: var(--bs-light-rgb);
-  --bs-body-bg: var(--bs-dark);
-  --bs-body-bg-rgb: var(--bs-dark-rgb);
+  --bs-body-color: var(--bs-dark);
+  --bs-body-color-rgb: var(--bs-dark-rgb);
+  --bs-body-bg: var(--bs-light);
+  --bs-body-bg-rgb: var(--bs-light-rgb);
 }
 
 .legend-container {
