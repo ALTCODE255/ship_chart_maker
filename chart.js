@@ -4,7 +4,7 @@ const uploadImgForm = document.getElementById("upload-img");
 const charSel = document.getElementById("char-sel");
 const avatarSel = document.getElementById("avatar-sel");
 
-let color = "#ff4d6d";
+let color = "#FF0000";
 let icons = [];
 let selectedChar = null;
 let ships = [];
