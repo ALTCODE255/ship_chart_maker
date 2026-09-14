@@ -1,15 +1,40 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css");
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("Open Sans.ttf");
+  font-weight: normal;
+}
+:root {
+  --bs-light: rgb(239, 239, 239);
+  --bs-light-rgb: 239, 239, 239;
+  --bs-dark: #1d1f2a;
+  --bs-dark-rgb: 29, 31, 42;
+  --bs-body-font-family: "Open Sans";
+  --bs-body-font-size: 1rem;
+  --bs-body-font-weight: 500;
+  --bs-body-line-height: 1.6;
+  --bs-body-color: var(--bs-light);
+  --bs-body-color-rgb: var(--bs-light-rgb);
+  --bs-body-bg: var(--bs-dark);
+  --bs-body-bg-rgb: var(--bs-dark-rgb);
+}
+
+.legend-container {
+    width: 20em;
+    flex: 0 0 20em;
+}
+
+.chart-container {
+    width: 700px;
+    flex: 0 0 700px;
+}
+
 .circle {
   --radius: 200px;
   aspect-ratio: 1;
   position: relative;
-}
-
-.ship-lines {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
+  margin-inline: auto;
 }
 
 .icon {
@@ -26,21 +51,29 @@
   box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.5) !important;
 }
 
+.ship-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
 .legend {
-    display: flex;
-    justify-content: center;
-    gap: 12px 20px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px 20px;
+  margin-top: 20px;
 }
 
 .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .swatch {
-    width: 1.25em;
-    height: 1.25em;
-    background: var(--color);
+  width: 1.25em;
+  height: 1.25em;
+  background: var(--color);
 }
