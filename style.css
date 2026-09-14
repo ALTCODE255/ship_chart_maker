@@ -55,7 +55,7 @@
 }
 
 .selected {
-  box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 0 0 5px var(--color) !important;
 }
 
 .ship-lines {

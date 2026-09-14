@@ -24,6 +24,7 @@ function selectChar(index) {
   // First character
   if (selectedChar == null) {
     selectedChar = index;
+    char.style.setProperty("--color", color);
     char.classList.add("selected");
     return;
   }
