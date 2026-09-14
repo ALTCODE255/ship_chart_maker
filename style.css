@@ -21,13 +21,20 @@
 }
 
 .legend-container {
-    width: 20em;
-    flex: 0 0 20em;
+  width: 20em;
+  flex: 0 0 20em;
 }
 
 .chart-container {
-    width: 700px;
-    flex: 0 0 700px;
+  width: 700px;
+  flex: 0 0 700px;
+}
+
+@media (max-width: 768px) {
+  .legend-container {
+    width: 15em;
+    flex: 0 0 15em;
+  }
 }
 
 .circle {
@@ -73,7 +80,7 @@
 }
 
 .swatch {
-  width: 1.25em;
+  width: 1.75em;
   height: 1.25em;
   background: var(--color);
 }
