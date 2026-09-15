@@ -11,8 +11,9 @@
 </head>
 
 <body>
-    <main class="container-fluid p-2" id="content">
-        <h1>Ship Chart Maker</h1>
+    <main class="container-fluid p-3" id="content">
+        <h1><b>Ship Chart Maker</b></h1>
+
         <details>
             <summary class="h5">Instructions</summary>
             <ol>
@@ -23,7 +24,8 @@
                         <li>By default, images are arranged clockwise around the circle, starting at the <b>12
                                 o'clock</b> position (character <code>1</code>).</li>
                         <li>To upload images individually, select one file at a time and increment the "starting from
-                            <code>1</code>" value for each upload.</li>
+                            <code>1</code>" value for each upload.
+                        </li>
                     </ul>
                 </li>
                 <li>Choose a line type by clicking its <b>color swatch/legend</b>.</li>
@@ -36,12 +38,12 @@
                 </li>
             </ol>
         </details>
-        <label for="char-ct">Number of Characters:
-        </label>
-        <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
-            placeholder="10" maxlength="2" min="3" max="50" value="10">
 
-        <form method="POST" enctype="multipart/form-data" id="upload-img">
+        <form id="chart-form" method="POST" enctype="multipart/form-data">
+            <label for="char-ct">Number of Characters:</label>
+            <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
+                placeholder="10" maxlength="2" min="3" max="50" value="10">
+            <br>
             <label for="avatar-file">Upload Pictures for Characters (starting from <input type="number" id="char-sel"
                     style="width:3rem" min="1" value=1 placeholder="1" maxlength="2">):
             </label>
@@ -52,69 +54,82 @@
             </div>
         </form>
 
-        <div class="my-2">
-            <button onclick="clearCharacters();" class="btn btn-primary">Clear All Characters</button>
-            <button onclick="clearAllLines();" class="btn btn-primary">Clear Relationship Lines</button>
+        <div id="buttons" class="my-2">
+            <button onclick="clearCharacters();" class="btn my-1 btn-danger">Clear Images</button>
+            <button onclick="clearAllLines();" class="btn my-1 btn-danger">Clear Lines</button>
+            <button id="export" class="btn my-1 btn-primary">
+                Export Chart Image</button>
         </div>
-
-        <div class="d-flex my-2">
-            <div class="legend-container">
-                <div class="vstack legend">
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #FF0000"></button>Favorite
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #EBA72A"></button>Really
-                        Like
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #F2DD1F"></button>Like
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #38EB38"></button>OK
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #4393EE"></button>No
-                        Strong
-                        Feelings
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #343435"></button>Dislike
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #831ECB"></button>I'm
-                        Scared
-                    </div>
-                    <hr>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #F195A6"></button>Romantic
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #6FFFFA"></button>Platonic or
-                        Romantic
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #D84DFF"></button>Comedic
-                    </div>
-                    <div class="legend-item">
-                        <button onclick="switchColor(this)" class="swatch" style="--color: #ADC12D"></button>Familial
-                    </div>
+        <details>
+            <summary>Edit Legend</summary>
+            <div id="legend-input" class=>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#FF0000">
+                    <input class="w-100" type="text" value="Favorite">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#EBA72A">
+                    <input class="w-100" type="text" placeholder="Label" value="Really Like">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#F2DD1F">
+                    <input class="w-100" type="text" placeholder="Label" value="Like">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#38EB38">
+                    <input class="w-100" type="text" placeholder="Label" value="OK">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#4393EE">
+                    <input class="w-100" type="text" placeholder="Label" value="No Strong Feelings">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#343435">
+                    <input class="w-100" type="text" placeholder="Label" value="Dislike">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#831ECB">
+                    <input class="w-100" type="text" placeholder="Label" value="I'm Scared (Positive or Negative)">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#F195A6">
+                    <input class="w-100" type="text" placeholder="Label" value="Romantic">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#6FFFFA">
+                    <input class="w-100" type="text" placeholder="Label" value="Platonic or Romantic">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#D84DFF">
+                    <input class="w-100" type="text" placeholder="Label" value="Comedic">
+                </div>
+                <div class="legend-entry d-flex">
+                    <input type="color" value="#ADC12D">
+                    <input class="w-100" type="text" placeholder="Label" value="Familial">
                 </div>
             </div>
+            <button class="bg-light" onclick="removeLegendEntry();">-</button>
+            <button class="bg-light" onclick="addLegendEntry();">+</button>
+        </details>
 
-            <div class="chart-container">
-                <div class="circle">
-                    <svg class="ship-lines"></svg>
-                </div>
+        <div class="mx-2 align-items-center gap-2 d-flex">
+            Current Color: <div id="current-color" class="swatch border border-dark" style="--color: #FF0000"></div>
+        </div>
+
+        <div id="ship-chart" class="d-inline-flex gap-3 px-2 py-1">
+            <div class="vstack legend" id="legend"></div>
+            <div class="circle">
+                <svg class="ship-lines"></svg>
             </div>
         </div>
 
     </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="./chart.js"></script>
     <script>
         updateCharacters();
+        createLegend();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

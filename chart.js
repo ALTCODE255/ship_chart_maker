@@ -1,14 +1,16 @@
 const circle = document.querySelector(".circle");
 const charCount = document.getElementById("char-ct");
-const uploadImgForm = document.getElementById("upload-img");
 const charSel = document.getElementById("char-sel");
 const avatarSel = document.getElementById("avatar-sel");
+const legend = document.getElementById("legend");
+const legendInput = document.getElementById("legend-input");
 
-let color = "#FF0000";
+let strokeColor = "#FF0000";
 let icons = [];
 let selectedChar = null;
 let ships = [];
 
+// Count SVG paths between same two characters
 function countLines(list, target) {
   return list.filter((arr) => arr[0] == target[0] && arr[1] == target[1])
     .length;
@@ -18,13 +20,14 @@ function hasArray(list, target) {
   return list.some((arr) => arr.every((value, i) => value === target[i]));
 }
 
+// Select a character to attach path to
 function selectChar(index) {
   const char = icons[index];
 
   // First character
   if (selectedChar == null) {
     selectedChar = index;
-    char.style.setProperty("--color", color);
+    char.style.setProperty("--color", strokeColor);
     char.classList.add("selected");
     return;
   }
@@ -36,15 +39,15 @@ function selectChar(index) {
     return;
   }
 
-  // Second character -> create ship
+  // Second character -> create ship line
 
   // Make sure order doesn't matter
   char1 = Math.max(selectedChar, index);
   char2 = Math.min(selectedChar, index);
 
-  if (!hasArray(ships, [char1, char2, color])) {
+  if (!hasArray(ships, [char1, char2, strokeColor])) {
     dupe_ct = countLines(ships, [char1, char2]);
-    ships.push([char1, char2, color]);
+    ships.push([char1, char2, strokeColor]);
 
     drawShipLine(char1, char2, dupe_ct);
   }
@@ -54,6 +57,7 @@ function selectChar(index) {
   selectedChar = null;
 }
 
+// Get center coordinates of bounding rectangle
 function getCenter(rect) {
   let parent = circle.getBoundingClientRect();
   return [
@@ -62,8 +66,9 @@ function getCenter(rect) {
   ];
 }
 
+// Draw a line between two given characters
 function drawShipLine(char1, char2, path_offset) {
-  const svg = document.querySelector(".ship-lines");
+  const svg = circle.querySelector(".ship-lines");
 
   const icon1 = icons[char1];
   const icon2 = icons[char2];
@@ -102,14 +107,14 @@ function drawShipLine(char1, char2, path_offset) {
 
   path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
   path.setAttribute("fill", "none");
-  path.setAttribute("stroke", color);
+  path.setAttribute("stroke", strokeColor);
   path.setAttribute("stroke-width", "3");
   path.setAttribute("transform", `translate(${tx}, ${ty})`);
 
   path.addEventListener("click", () => {
     path.remove();
     const index = ships.findIndex(
-      (ship) => ship[0] === char1 && ship[1] === char2 && ship[2] === color,
+      (ship) => ship[0] == char1 && ship[1] == char2 && ship[2] == strokeColor,
     );
 
     if (index != -1) ships.splice(index, 1);
@@ -118,6 +123,7 @@ function drawShipLine(char1, char2, path_offset) {
   svg.appendChild(path);
 }
 
+// Update number of images in circle based on user input
 function updateCharacters() {
   let iconHtml = "<svg class='ship-lines'></svg>";
   selectedChar = null;
@@ -148,6 +154,7 @@ function updateCharacters() {
   });
 }
 
+// Clear character images
 function clearCharacters() {
   icons.forEach((icon, i) => {
     localStorage.removeItem(`uploadedImage-${i + 1}`);
@@ -156,13 +163,15 @@ function clearCharacters() {
   clearAllLines();
 }
 
+// Clear drawn ship lines
 function clearAllLines() {
-  const svg = document.querySelector(".ship-lines");
+  const svg = circle.querySelector(".ship-lines");
   svg.innerHTML = "";
   ships = [];
 }
 
-function uploadImage(e) {
+// Upload images
+document.getElementById("chart-form").addEventListener("submit", (e) => {
   e.preventDefault();
 
   Array.from(avatarSel.files).forEach((file, i) => {
@@ -183,9 +192,80 @@ function uploadImage(e) {
 
     reader.readAsDataURL(file);
   });
-}
-uploadImgForm.addEventListener("submit", uploadImage);
+});
 
-function switchColor(el) {
-  color = el.style.getPropertyValue("--color");
+// Export screenshot
+document.getElementById("export").addEventListener("click", async () => {
+  const canvas = await html2canvas(document.getElementById("ship-chart"));
+  const link = document.createElement("a");
+  link.download = "ship-chart.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+});
+
+// Update global stroke color
+function updateColor(el) {
+  strokeColor = el.style.getPropertyValue("--color");
+  document
+    .getElementById("current-color")
+    .style.setProperty("--color", strokeColor);
+}
+
+// Update legend for a specific entry
+function updateLegend(el, idx) {
+  // el should be of class .legend-entry
+  const color = el.querySelector("[type='color']").value;
+  const label = el.querySelector("[type='text']").value;
+  document.getElementById(`label-${idx}`).innerHTML =
+    `<button onclick="color = this.style.getPropertyValue('--color');" class="swatch" style="--color: ${color}"></button>${label}`;
+}
+
+// Create legend. Run only once in beginning
+function createLegend() {
+  const html = Array.from(document.querySelectorAll(".legend-entry"))
+    .map((entry, idx) => {
+      entry.addEventListener("change", () => updateLegend(entry, idx));
+      const color = entry.querySelector("[type='color']").value;
+      const label = entry.querySelector("[type='text']").value;
+
+      return `
+            <div class="legend-item" id="label-${idx}">
+                <button onclick="updateColor(this);" class="swatch" style="--color: ${color}"></button>
+                ${label}
+            </div>
+        `;
+    })
+    .join("");
+
+  legend.innerHTML = html;
+}
+
+function addLegendEntry() {
+  const idx = legendInput.children.length;
+  legendInput.insertAdjacentHTML(
+    "beforeend",
+    `<div class='legend-entry my-1 d-flex'>
+        <input type='color' value='white'>
+        <input class='w-100' type='text' placeholder='Label'>
+    </div>`,
+  );
+
+  legend.insertAdjacentHTML(
+    "beforeend",
+    `
+        <div class="legend-item" id="label-${idx}">
+            <button onclick="updateColor(this);" class="swatch" style="--color: white"></button>
+            Label
+        </div>
+    `,
+  );
+  legendInput.lastChild.addEventListener("change", () =>
+    updateLegend(legendInput.lastElementChild, idx),
+  );
+}
+
+function removeLegendEntry() {
+  if (!legend.lastElementChild) return;
+  legendInput.removeChild(legendInput.lastElementChild);
+  legend.removeChild(legend.lastElementChild);
 }
