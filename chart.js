@@ -71,32 +71,32 @@ function drawShipLine(char1, char2, path_offset) {
   if (!icon1 || !icon2) return;
 
   // Parent rectangle center
-  [rx, ry] = getCenter(circle.getBoundingClientRect());
+  const [rx, ry] = getCenter(circle.getBoundingClientRect());
 
   // Get center (x, y) positions of both icons
-  [x1, y1] = getCenter(icon1.getBoundingClientRect());
-  [x2, y2] = getCenter(icon2.getBoundingClientRect());
+  const [x1, y1] = getCenter(icon1.getBoundingClientRect());
+  const [x2, y2] = getCenter(icon2.getBoundingClientRect());
 
   // Midpoint
-  [mx, my] = [(x1 + x2) / 2, (y1 + y2) / 2];
+  const [mx, my] = [(x1 + x2) / 2, (y1 + y2) / 2];
 
   // Euclidean distances
-  [dx, dy] = [x2 - x1, y2 - y1];
+  const [dx, dy] = [x2 - x1, y2 - y1];
 
   // Curvature inversely proportional to line length
-  length = Math.sqrt(dx * dx + dy * dy);
-  offset = 7500 / length;
+  const length = Math.hypot(dx, dy);
+  const offset = 7500 / length;
 
   // Angle of vector that points from midpoint to center of circle
-  theta = Math.atan2(ry - my, rx - mx);
+  const theta = Math.atan2(ry - my, rx - mx);
 
   // Control point
-  cx = mx + offset * Math.cos(theta);
-  cy = my + offset * Math.sin(theta);
+  const cx = mx + offset * Math.cos(theta);
+  const cy = my + offset * Math.sin(theta);
 
   // Translation offset (to avoid stacking paths)
-  tx = path_offset * 3 * Math.cos(theta);
-  ty = path_offset * 3 * Math.sin(theta);
+  const tx = path_offset * 3 * Math.cos(theta);
+  const ty = path_offset * 3 * Math.sin(theta);
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
@@ -108,7 +108,11 @@ function drawShipLine(char1, char2, path_offset) {
 
   path.addEventListener("click", () => {
     path.remove();
-    ships.pop([char1, char2, color]);
+    const index = ships.findIndex(
+      (ship) => ship[0] === char1 && ship[1] === char2 && ship[2] === color,
+    );
+
+    if (index != -1) ships.splice(index, 1);
   });
 
   svg.appendChild(path);
@@ -133,7 +137,7 @@ function updateCharacters() {
     icon.style.setProperty("--angle", `${angle}deg`);
   });
 
-  charSel.max = min(charCount.value, charCount.max);
+  charSel.max = Math.min(charCount.value, charCount.max);
 
   // Load any previously saved images
   icons.forEach((icon, i) => {
