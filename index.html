@@ -112,9 +112,13 @@
             <button class="bg-light" onclick="addLegendEntry();">+</button>
         </details>
 
-        <div class="mx-2 align-items-center gap-2 d-flex">
-            Current Color: <div id="current-color" class="swatch border border-dark" style="--color: #FF0000"></div>
+        <div class="mx-2">
+            Stroke Width: <input oninput="strokeWidth = this.value;" id="stroke-width" type="number" min="1" max="10" value="2"><br>
+            <div class="d-flex mt-1 align-items-center gap-2">Current Color: <div id="current-color"
+                    class="swatch border border-dark" style="--color: #FF0000"></div>
+            </div>
         </div>
+
 
         <div id="ship-chart" class="d-inline-flex gap-3 px-2 py-1">
             <div class="vstack legend" id="legend"></div>

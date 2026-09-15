@@ -4,8 +4,10 @@ const charSel = document.getElementById("char-sel");
 const avatarSel = document.getElementById("avatar-sel");
 const legend = document.getElementById("legend");
 const legendInput = document.getElementById("legend-input");
+const strokeInput = document.getElementById("stroke-width");
 
 let strokeColor = "#FF0000";
+let strokeWidth = strokeInput.value;
 let icons = [];
 let selectedChar = null;
 let ships = [];
@@ -100,15 +102,15 @@ function drawShipLine(char1, char2, path_offset) {
   const cy = my + offset * Math.sin(theta);
 
   // Translation offset (to avoid stacking paths)
-  const tx = path_offset * 3 * Math.cos(theta);
-  const ty = path_offset * 3 * Math.sin(theta);
+  const tx = path_offset * strokeWidth * Math.cos(theta);
+  const ty = path_offset * strokeWidth * Math.sin(theta);
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
   path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
   path.setAttribute("fill", "none");
   path.setAttribute("stroke", strokeColor);
-  path.setAttribute("stroke-width", "3");
+  path.setAttribute("stroke-width", strokeWidth);
   path.setAttribute("transform", `translate(${tx}, ${ty})`);
 
   path.addEventListener("click", () => {
