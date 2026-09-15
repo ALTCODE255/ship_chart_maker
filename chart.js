@@ -220,7 +220,7 @@ function updateLegend(el, idx) {
   const color = el.querySelector("[type='color']").value;
   const label = el.querySelector("[type='text']").value;
   document.getElementById(`label-${idx}`).innerHTML =
-    `<button onclick="color = this.style.getPropertyValue('--color');" class="swatch" style="--color: ${color}"></button>${label}`;
+    `<button onclick="color = this.style.getPropertyValue('--color');" class="swatch" style="--color: ${color}"></button> ${label}`;
 }
 
 // Create legend. Run only once in beginning
