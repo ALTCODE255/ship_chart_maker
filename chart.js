@@ -209,6 +209,7 @@ function updateColor(el) {
   document
     .getElementById("current-color")
     .style.setProperty("--color", strokeColor);
+  icons[selectedChar].style.setProperty("--color", strokeColor);
 }
 
 // Update legend for a specific entry
