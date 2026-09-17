@@ -214,6 +214,8 @@ function updateColor(el) {
   icons[selectedChar].style.setProperty("--color", strokeColor);
 }
 
+function 
+
 // Update legend for a specific entry
 function updateLegend(el, idx) {
   // el should be of class .legend-entry
@@ -243,13 +245,15 @@ function createLegend() {
   legend.innerHTML = html;
 }
 
-function addLegendEntry() {
+function addLegendEntry(color = None, label = None) {
   const idx = legendInput.children.length;
+  if (!color) color = "#ffffff";
+  if (!label) label = "Label";
   legendInput.insertAdjacentHTML(
     "beforeend",
     `<div class='legend-entry my-1 d-flex'>
-        <input type='color' value='white'>
-        <input class='w-100' type='text' placeholder='Label'>
+        <input type='color' value='${color}'>
+        <input class='w-100' type='text' placeholder='Label' value='${label}'>
     </div>`,
   );
 
@@ -257,8 +261,8 @@ function addLegendEntry() {
     "beforeend",
     `
         <div class="legend-item" id="label-${idx}">
-            <button onclick="updateColor(this);" class="swatch" style="--color: white"></button>
-            Label
+            <button onclick="updateColor(this);" class="swatch" style="--color: ${color}"></button>
+            ${label}
         </div>
     `,
   );
