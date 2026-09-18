@@ -129,6 +129,7 @@ function drawShipLine(char1, char2, color, path_offset) {
 function updateCharacters() {
   let iconHtml = "<svg class='ship-lines'></svg>";
   selectedChar = null;
+  ships = [];
 
   for (let i = 0; i < charCount.value && i < charCount.max; i++) {
     iconHtml += `<a href="javascript:selectChar(${i})"><img src="./unknown.png" class="icon"></a>`;
