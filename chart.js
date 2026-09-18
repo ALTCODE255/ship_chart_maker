@@ -51,7 +51,7 @@ function selectChar(index) {
     dupe_ct = countLines(ships, [char1, char2]);
     ships.push([char1, char2, strokeColor]);
 
-    drawShipLine(char1, char2, dupe_ct);
+    drawShipLine(char1, char2, strokeColor, dupe_ct);
   }
 
   // Remove selection
@@ -69,7 +69,7 @@ function getCenter(rect) {
 }
 
 // Draw a line between two given characters
-function drawShipLine(char1, char2, path_offset) {
+function drawShipLine(char1, char2, color, path_offset) {
   const svg = circle.querySelector(".ship-lines");
 
   const icon1 = icons[char1];
@@ -109,14 +109,14 @@ function drawShipLine(char1, char2, path_offset) {
 
   path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
   path.setAttribute("fill", "none");
-  path.setAttribute("stroke", strokeColor);
+  path.setAttribute("stroke", color);
   path.setAttribute("stroke-width", strokeWidth);
   path.setAttribute("transform", `translate(${tx}, ${ty})`);
 
   path.addEventListener("click", () => {
     path.remove();
     const index = ships.findIndex(
-      (ship) => ship[0] == char1 && ship[1] == char2 && ship[2] == strokeColor,
+      (ship) => ship[0] == char1 && ship[1] == char2 && ship[2] == color,
     );
 
     if (index != -1) ships.splice(index, 1);
