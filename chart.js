@@ -214,7 +214,6 @@ function updateColor(el) {
   icons[selectedChar].style.setProperty("--color", strokeColor);
 }
 
-function 
 
 // Update legend for a specific entry
 function updateLegend(el, idx) {
