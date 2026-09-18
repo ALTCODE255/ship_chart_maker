@@ -244,7 +244,7 @@ function createLegend() {
   legend.innerHTML = html;
 }
 
-function addLegendEntry(color = None, label = None) {
+function addLegendEntry(color = null, label = null) {
   const idx = legendInput.children.length;
   if (!color) color = "#ffffff";
   if (!label) label = "Label";
