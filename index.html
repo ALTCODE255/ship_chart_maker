@@ -26,6 +26,7 @@
                         <li>To upload images individually, select one file at a time and increment the "starting from
                             <code>1</code>" value for each upload.
                         </li>
+                        <li>Alternatively, edit the image URLs directly under "Edit Images".</li>
                     </ul>
                 </li>
                 <li>Choose a line type by clicking its <b>color swatch/legend</b>.</li>
@@ -36,12 +37,14 @@
                         <li>Multiple lines of different colors can connect the same two characters.</li>
                     </ul>
                 </li>
+                <li>Click "Export Chart Image" to download the chart as a PNG image.</li>
+                <li>Click "Copy Config URL" to generate a URL to recreate the current configuration with legend labels and images.</li>
             </ol>
         </details>
 
         <form id="chart-form" method="POST" enctype="multipart/form-data">
             Number of Characters:
-            <input oninput="updateCharacters(); return false;" id="char-ct" type="number" style="width: 3em"
+            <input oninput="updateCharCount(this.value); return false;" id="char-ct" type="number" style="width: 3em"
                 placeholder="10" maxlength="2" min="3" max="50" value="10">
             <br>
             Upload Pictures for Characters (starting from <input type="number" id="char-sel" style="width:3rem" min="1"
@@ -54,40 +57,21 @@
         </form>
 
         <div id="buttons" class="my-2">
+            <button onclick="reset();" class="btn my-1 btn-danger">Reset</button>
             <button onclick="clearCharacters();" class="btn my-1 btn-danger">Clear Images</button>
             <button onclick="clearAllLines();" class="btn my-1 btn-danger">Clear Lines</button>
-            <button id="export" class="btn my-1 btn-primary">
-                Export Chart Image</button>
+            <button onclick="exportChart();" class="btn my-1 btn-primary">Export Chart Image</button>
+            <button onclick="exportConfig();" class="btn my-1 btn-primary">Copy Config URL</button>
         </div>
         <details>
+            <summary>Edit Images</summary>
+            <b>Image URLs:</b><br>
+            <div id="image-srcs"></div>
+        </details>
+        <details>
             <summary>Edit Legend</summary>
-            <div id="legend-input">
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#FF0000">
-                    <input class="w-100" type="text" value="Favorite">
-                </div>
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#EBA72A">
-                    <input class="w-100" type="text" placeholder="Label" value="Really Like">
-                </div>
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#F2DD1F">
-                    <input class="w-100" type="text" placeholder="Label" value="Like">
-                </div>
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#38EB38">
-                    <input class="w-100" type="text" placeholder="Label" value="OK">
-                </div>
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#4393EE">
-                    <input class="w-100" type="text" placeholder="Label" value="No Strong Feelings">
-                </div>
-                <div class="legend-entry d-flex">
-                    <input type="color" value="#343435">
-                    <input class="w-100" type="text" placeholder="Label" value="Dislike">
-                </div>
-            </div>
-            <button onclick="removeLegendEntry();"> - </button>
+            <div id="legend-input"></div>
+            <button onclick="removeLastLegendEntry();"> - </button>
             <button onclick="addLegendEntry();"> + </button>
         </details>
 
@@ -98,10 +82,9 @@
                     class="swatch border border-dark" style="--color: #FF0000"></div>
             </div>
         </div>
-
-        <div id="ship-chart" class="d-inline-flex gap-3 ps-2 p-4" ,>
+        <div id="ship-chart" class="d-inline-flex gap-3 ps-2 p-4">
             <div class="vstack legend" id="legend"></div>
-            <div class="circle ms-5">
+            <div id="circle" class="ms-5">
                 <svg class="ship-lines"></svg>
             </div>
         </div>
@@ -109,10 +92,6 @@
     </main>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="./chart.js"></script>
-    <script>
-        updateCharacters();
-        createLegend();
-    </script>
 </body>
 
 </html>

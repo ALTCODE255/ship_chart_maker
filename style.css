@@ -33,7 +33,7 @@
   background: var(--color);
 }
 
-.circle {
+#circle {
   --radius: 200px;
   width: 800px;
   aspect-ratio: 1;

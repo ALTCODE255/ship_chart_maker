@@ -1,16 +1,28 @@
-const circle = document.querySelector(".circle");
+const circle = document.getElementById("circle");
 const charCount = document.getElementById("char-ct");
 const charSel = document.getElementById("char-sel");
-const avatarSel = document.getElementById("avatar-sel");
 const legend = document.getElementById("legend");
 const legendInput = document.getElementById("legend-input");
 const strokeInput = document.getElementById("stroke-width");
+const iconSrcInput = document.getElementById("image-srcs");
+const currentColor = document.getElementById("current-color");
+const chartForm = document.getElementById("chart-form");
+const avatarSel = document.getElementById("avatar-sel");
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
 
 let strokeColor = "#FF0000";
-let strokeWidth = strokeInput.value;
+let strokeWidth = Number(strokeInput.value) || 2;
 let icons = [];
+let icon_srcs = [];
 let selectedChar = null;
 let ships = [];
+
+// ─────────────────────────────────────────────
+// Character Selection and Ship Lines
+// ─────────────────────────────────────────────
 
 // Count SVG paths between same two characters
 function countLines(list, target) {
@@ -44,11 +56,11 @@ function selectChar(index) {
   // Second character -> create ship line
 
   // Make sure order doesn't matter
-  char1 = Math.max(selectedChar, index);
-  char2 = Math.min(selectedChar, index);
+  const char1 = Math.max(selectedChar, index);
+  const char2 = Math.min(selectedChar, index);
 
   if (!hasArray(ships, [char1, char2, strokeColor])) {
-    dupe_ct = countLines(ships, [char1, char2]);
+    const dupe_ct = countLines(ships, [char1, char2]);
     ships.push([char1, char2, strokeColor]);
 
     drawShipLine(char1, char2, strokeColor, dupe_ct);
@@ -61,7 +73,7 @@ function selectChar(index) {
 
 // Get center coordinates of bounding rectangle
 function getCenter(rect) {
-  let parent = circle.getBoundingClientRect();
+  const parent = circle.getBoundingClientRect();
   return [
     rect.left + rect.width / 2 - parent.left,
     rect.top + rect.height / 2 - parent.top,
@@ -71,14 +83,16 @@ function getCenter(rect) {
 // Draw a line between two given characters
 function drawShipLine(char1, char2, color, path_offset) {
   const svg = circle.querySelector(".ship-lines");
-
   const icon1 = icons[char1];
   const icon2 = icons[char2];
 
   if (!icon1 || !icon2) return;
 
   // Parent rectangle center
-  const [rx, ry] = getCenter(circle.getBoundingClientRect());
+  const [rx, ry] = [
+    circle.getBoundingClientRect().width / 2,
+    circle.getBoundingClientRect().height / 2,
+  ];
 
   // Get center (x, y) positions of both icons
   const [x1, y1] = getCenter(icon1.getBoundingClientRect());
@@ -125,154 +139,306 @@ function drawShipLine(char1, char2, color, path_offset) {
   svg.appendChild(path);
 }
 
+// Clear drawn ship lines
+function clearAllLines() {
+  const svg = circle.querySelector(".ship-lines");
+  svg.replaceChildren();
+  ships = [];
+}
+
+// ─────────────────────────────────────────────
+// Icons + Image Handling
+// ─────────────────────────────────────────────
+
 // Update number of images in circle based on user input
-function updateCharacters() {
-  let iconHtml = "<svg class='ship-lines'></svg>";
+function updateCharCount(value) {
   selectedChar = null;
   ships = [];
 
-  for (let i = 0; i < charCount.value && i < charCount.max; i++) {
-    iconHtml += `<a href="javascript:selectChar(${i})"><img src="./unknown.png" class="icon"></a>`;
+  charSel.max = Math.min(value, charCount.max);
+
+  // Clear existing elements
+  circle.replaceChildren();
+  iconSrcInput.replaceChildren();
+
+  // Create SVG
+  const shipLines = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg",
+  );
+  shipLines.setAttribute("class", "ship-lines");
+  circle.appendChild(shipLines);
+
+  for (let i = 0; i < charSel.max; i++) {
+    // Create icon
+    const icon = document.createElement("img");
+    icon.className = "icon";
+    icon.src = "./unknown.png";
+    icon.addEventListener("click", () => selectChar(i));
+    circle.appendChild(icon);
+
+    // insert label before input
+    const label = document.createTextNode(`${i + 1}: `);
+    iconSrcInput.appendChild(label);
+
+    // Create image source input
+    const input = document.createElement("input");
+    input.style.width = "90%";
+    input.className = "icon_src";
+    input.type = "text";
+    input.value = "./unknown.png";
+    input.addEventListener("change", () => updateImageSrc(i, input.value));
+    iconSrcInput.appendChild(input);
+
+    const linebreak = document.createElement("br");
+    iconSrcInput.appendChild(linebreak);
   }
 
-  circle.innerHTML = iconHtml;
+  icons = Array.from(circle.querySelectorAll(".icon"));
+  icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
 
-  icons = circle.querySelectorAll(".icon");
-
+  // Position icons around the circle
   icons.forEach((icon, i) => {
     const angle = (360 / icons.length) * i;
 
     icon.style.setProperty("--total-num", icons.length);
     icon.style.setProperty("--angle", `${angle}deg`);
   });
-
-  charSel.max = Math.min(charCount.value, charCount.max);
-
-  // Load any previously saved images
-  icons.forEach((icon, i) => {
-    const image = localStorage.getItem(`uploadedImage-${i + 1}`);
-    if (image) {
-      icon.src = image;
-    }
-  });
 }
 
 // Clear character images
-function clearCharacters() {
-  icons.forEach((icon, i) => {
-    localStorage.removeItem(`uploadedImage-${i + 1}`);
-    icon.src = "unknown.png";
-  });
-  clearAllLines();
+function clearImages() {
+  icons.forEach((icon) => (icon.src = "./unknown.png"));
 }
 
-// Clear drawn ship lines
-function clearAllLines() {
-  const svg = circle.querySelector(".ship-lines");
-  svg.innerHTML = "";
-  ships = [];
+function updateImageSrc(idx, value) {
+  icons[idx].src = value;
 }
 
 // Upload images
 document.getElementById("chart-form").addEventListener("submit", (e) => {
   e.preventDefault();
-
-  Array.from(avatarSel.files).forEach((file, i) => {
+  Array.from(avatarSel.files).forEach(async (file, i) => {
     const idx = charSel.value - 1 + i;
-    if (idx >= charCount) return;
+    if (idx >= charSel.max) return;
 
-    // Display image immediately
+    // Create a temporary URL for the uploaded file
     const imageSrc = URL.createObjectURL(file);
     icons[idx].src = imageSrc;
-
-    // Save to local storage
-    const reader = new FileReader();
-    reader.onload = () => {
-      localStorage.setItem(`uploadedImage-${idx + 1}`, reader.result);
-
-      icons[idx].src = reader.result;
-    };
-
-    reader.readAsDataURL(file);
+    icon_srcs[idx].value = imageSrc;
   });
 });
 
 // Export screenshot
-document.getElementById("export").addEventListener("click", async () => {
+async function exportChart() {
   const canvas = await html2canvas(document.getElementById("ship-chart"));
   const link = document.createElement("a");
   link.download = "ship-chart.png";
   link.href = canvas.toDataURL("image/png");
   link.click();
-});
+}
+
+// ─────────────────────────────────────────────
+// Legend Handling + Color Selection
+// ─────────────────────────────────────────────
+
+function deleteLegend() {
+  legendInput.replaceChildren();
+  legend.replaceChildren();
+}
+// Create default legend. Run only once in beginning
+function createLegend() {
+  deleteLegend();
+  addLegendEntry("#FF0000", "Favorite");
+  addLegendEntry("#EBA72A", "Really Like");
+  addLegendEntry("#F2DD1F", "Like");
+  addLegendEntry("#38EB38", "OK");
+  addLegendEntry("#4393EE", "No Strong Feelings");
+  addLegendEntry("#343435", "Dislike");
+}
+
+// Update legend for a specific entry
+function updateLegend(idx) {
+  const color = document.querySelector(
+    `input[type='color'][data-index='${idx}']`,
+  ).value;
+  const label = document.querySelector(
+    `input[type='text'][data-index='${idx}']`,
+  ).value;
+  const swatch = document.querySelector(`.swatch[data-index='${idx}']`);
+  swatch.style.setProperty("--color", color);
+  swatch.nextSibling.textContent = ` ${label}`;
+}
 
 // Update global stroke color
-function updateColor(el) {
-  strokeColor = el.style.getPropertyValue("--color");
+function updateColor(color) {
+  strokeColor = color;
   document
     .getElementById("current-color")
     .style.setProperty("--color", strokeColor);
-  icons[selectedChar].style.setProperty("--color", strokeColor);
+  if (selectedChar != null)
+    icons[selectedChar].style.setProperty("--color", strokeColor);
 }
 
-
-// Update legend for a specific entry
-function updateLegend(el, idx) {
-  // el should be of class .legend-entry
-  const color = el.querySelector("[type='color']").value;
-  const label = el.querySelector("[type='text']").value;
-  document.getElementById(`label-${idx}`).innerHTML =
-    `<button onclick="color = this.style.getPropertyValue('--color');" class="swatch" style="--color: ${color}"></button> ${label}`;
-}
-
-// Create legend. Run only once in beginning
-function createLegend() {
-  const html = Array.from(document.querySelectorAll(".legend-entry"))
-    .map((entry, idx) => {
-      entry.addEventListener("change", () => updateLegend(entry, idx));
-      const color = entry.querySelector("[type='color']").value;
-      const label = entry.querySelector("[type='text']").value;
-
-      return `
-            <div class="legend-item" id="label-${idx}">
-                <button onclick="updateColor(this);" class="swatch" style="--color: ${color}"></button>
-                ${label}
-            </div>
-        `;
-    })
-    .join("");
-
-  legend.innerHTML = html;
-}
-
-function addLegendEntry(color = null, label = null) {
+function addLegendEntry(color = "#ffffff", label = "Label") {
   const idx = legendInput.children.length;
-  if (!color) color = "#ffffff";
-  if (!label) label = "Label";
-  legendInput.insertAdjacentHTML(
-    "beforeend",
-    `<div class='legend-entry my-1 d-flex'>
-        <input type='color' value='${color}'>
-        <input class='w-100' type='text' placeholder='Label' value='${label}'>
-    </div>`,
+
+  // Create legend input entry
+  const entry = document.createElement("div");
+  entry.className = "legend-entry my-1 d-flex";
+  entry.addEventListener("change", () => updateLegend(idx));
+
+  const colorInput = document.createElement("input");
+  colorInput.type = "color";
+  colorInput.value = color;
+  colorInput.dataset.index = idx;
+
+  const labelInput = document.createElement("input");
+  labelInput.className = "w-100";
+  labelInput.type = "text";
+  labelInput.placeholder = "Label";
+  labelInput.value = label;
+  labelInput.dataset.index = idx;
+
+  entry.append(colorInput, labelInput);
+  legendInput.appendChild(entry);
+
+  // Create legend display item
+  const item = document.createElement("div");
+  item.className = "legend-item";
+
+  const button = document.createElement("button");
+  button.className = "swatch";
+  button.dataset.index = idx;
+  button.type = "button";
+  button.style.setProperty("--color", color);
+  button.addEventListener("click", () =>
+    updateColor(button.style.getPropertyValue("--color")),
   );
 
-  legend.insertAdjacentHTML(
-    "beforeend",
-    `
-        <div class="legend-item" id="label-${idx}">
-            <button onclick="updateColor(this);" class="swatch" style="--color: ${color}"></button>
-            ${label}
-        </div>
-    `,
-  );
-  legendInput.lastChild.addEventListener("change", () =>
-    updateLegend(legendInput.lastElementChild, idx),
-  );
+  const labelText = document.createTextNode(" " + label);
+  item.append(button, labelText);
+  legend.appendChild(item);
 }
 
-function removeLegendEntry() {
+function removeLastLegendEntry() {
   if (!legend.lastElementChild) return;
   legendInput.removeChild(legendInput.lastElementChild);
   legend.removeChild(legend.lastElementChild);
 }
+
+// ─────────────────────────────────────────────
+// Export and Import Config via URL
+// ─────────────────────────────────────────────
+
+async function compressToBase64(text) {
+  // Compress the text using gzip
+  const stream = new Blob([text])
+    .stream()
+    .pipeThrough(new CompressionStream("gzip"));
+  const buffer = await new Response(stream).arrayBuffer();
+
+  // Convert the compressed data to base64
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+  // Convert to base64url
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function decompressFrombase64(data) {
+  // Convert from base64url to base64
+  const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
+
+  // Decode base64 to compressed binary data
+  const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+  // Decompress the data using gzip
+  const stream = new Blob([buffer])
+    .stream()
+    .pipeThrough(new DecompressionStream("gzip"));
+
+  return await new Response(stream).text();
+}
+
+async function loadConfigFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const config = params.get("config");
+  if (!config) return;
+
+  const json_data = JSON.parse(await decompressFrombase64(config));
+
+  updateCharCount(json_data.char_count);
+  charCount.value = json_data.char_count;
+  strokeInput.value = strokeWidth = json_data.line_width;
+  strokeColor = json_data.line_color;
+
+  deleteLegend();
+  json_data.legend.forEach((e) => {
+    if (e.color && e.label && CSS.supports("color", e.color)) {
+      addLegendEntry(e.color, e.label);
+    }
+  });
+
+  clearImages();
+  json_data.images.forEach((src, i) => {
+    if (icons[i]) {
+      icons[i].src = src;
+      icon_srcs[i].value = src;
+    }
+  });
+}
+
+async function exportConfig() {
+  const legendEntries = Array.from(legendInput.children).map((entry) => {
+    const color = entry.querySelector("input[type='color']").value;
+    const label = entry.querySelector("input[type='text']").value;
+    return { color, label };
+  });
+  const images = Array.from(icons).map((icon) => icon.src);
+
+  if (images.some((src) => src.startsWith("blob:"))) {
+    alert(
+      "Warning: Local uploaded images (blob URLs) are not shareable. " +
+        "Replace them with external URLs before sharing.",
+    );
+  }
+
+  const payload = {
+    char_count: charSel.max,
+    line_width: strokeWidth,
+    line_color: strokeColor,
+    legend: legendEntries,
+    images: images,
+  };
+
+  // Compress and encode the config to base64url
+  const encoded = await compressToBase64(JSON.stringify(payload));
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("config", encoded);
+  navigator.clipboard.writeText(url.toString());
+}
+
+function init() {
+  updateCharCount(10);
+  createLegend();
+  loadConfigFromURL();
+}
+
+function reset() {
+  clearImages();
+  clearAllLines();
+  deleteLegend();
+  updateCharCount(10);
+  strokeInput.value = strokeWidth = 2;
+  strokeColor = "#FF0000";
+  document
+    .getElementById("current-color")
+    .style.setProperty("--color", strokeColor);
+  const url = new URL(window.location);
+  url.searchParams.delete("config");
+  window.history.replaceState({}, document.title, url.toString());
+  createLegend();
+}
+
+init();
