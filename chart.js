@@ -370,7 +370,6 @@ async function loadConfigFromURL() {
   updateCharCount(json_data.char_count);
   charCount.value = json_data.char_count;
   strokeInput.value = strokeWidth = json_data.line_width;
-  strokeColor = json_data.line_color;
 
   deleteLegend();
   json_data.legend.forEach((e) => {
@@ -406,7 +405,6 @@ async function exportConfig() {
   const payload = {
     char_count: charSel.max,
     line_width: strokeWidth,
-    line_color: strokeColor,
     legend: legendEntries,
     images: images,
   };
