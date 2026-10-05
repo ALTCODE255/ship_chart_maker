@@ -174,6 +174,8 @@ function updateCharCount(value) {
     const icon = document.createElement("img");
     icon.className = "icon";
     icon.src = "./unknown.png";
+    icon.setAttribute("data-bs-toggle", "tooltip");
+    icon.setAttribute("data-bs-title", i + 1);
     icon.addEventListener("click", () => selectChar(i));
     circle.appendChild(icon);
 
@@ -195,6 +197,7 @@ function updateCharCount(value) {
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
+  const tooltipList = [...icons].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
 
   // Position icons around the circle
