@@ -197,7 +197,9 @@ function updateCharCount(value) {
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
-  const tooltipList = [...icons].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+  const tooltipList = [...icons].map(
+    (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
+  );
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
 
   // Position icons around the circle
@@ -400,9 +402,12 @@ async function exportConfig() {
 
   if (images.some((src) => src.startsWith("blob:"))) {
     alert(
-      "Warning: Local uploaded images (blob URLs) are not shareable. " +
+      "Copied to clipboard!\n\n" +
+        "Warning: Local uploaded images (blob URLs) are not shareable. " +
         "Replace them with external URLs before sharing.",
     );
+  } else {
+    alert("Copied to clipboard!\n");
   }
 
   const payload = {
