@@ -336,6 +336,37 @@ function removeLastLegendEntry() {
 // Export and Import Config via URL
 // ─────────────────────────────────────────────
 
+async function createShare(base64Data) {
+  const response = await fetch("https://kv-storage.anonte3p5usu.workers.dev/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      value: base64Data,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result.url_hash;
+}
+
+async function getShare(hash) {
+  const response = await fetch(
+    `https://kv-storage.anonte3p5usu.workers.dev/${hash}`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to retrieve data: ${response.status}`);
+  }
+
+  return await response.text();
+}
+
 async function compressToBase64(text) {
   // Compress the text using gzip
   const stream = new Blob([text])
@@ -354,18 +385,10 @@ async function compressToBase64(text) {
 
   // Convert the compressed data to base64
   const base64 = btoa(binary);
-
-  // Convert to base64url
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return base64;
 }
 
-async function decompressFrombase64(base64url) {
-  // Convert from base64url to base64
-  const base64 = base64url
-    .replace(/-/g, "+")
-    .replace(/_/g, "/")
-    .padEnd(Math.ceil(base64url.length / 4) * 4, "=");
-
+async function decompressFrombase64(base64) {
   // Decode base64 to compressed binary data
   const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
@@ -379,9 +402,11 @@ async function decompressFrombase64(base64url) {
 
 async function loadConfigFromURL() {
   const params = new URLSearchParams(window.location.search);
-  const config = params.get("config");
-  if (!config) return;
+  const hash = params.get("share");
+  if (!hash) return;
 
+  const config = await getShare(hash);
+  if (!config) return;
   const json_data = JSON.parse(await decompressFrombase64(config));
 
   updateCharCount(json_data.char_count);
@@ -414,13 +439,13 @@ async function exportConfig() {
 
   if (images.some((src) => src.startsWith("blob:"))) {
     alert(
-      "Copied to clipboard!\n\n" +
-        "Warning: Local uploaded images (blob URLs) are not shareable. " +
-        "Replace them with external URLs before sharing.",
+      "Local uploaded images (blob URLs) are not shareable. " +
+        "Replace them with external URLs in 'Edit Images' and try again.",
     );
-  } else {
-    alert("Copied to clipboard!\n");
+    return;
   }
+
+  alert("Copied to clipboard!\n");
 
   const payload = {
     char_count: charSel.max,
@@ -429,11 +454,14 @@ async function exportConfig() {
     images: images,
   };
 
-  // Compress and encode the config to base64url
-  const encoded = await compressToBase64(JSON.stringify(payload));
+  // Compress and encode the config to base64
+  const base64 = await compressToBase64(JSON.stringify(payload));
+
+  // Create shareable URL
+  const hash = await createShare(base64);
 
   const url = new URL(window.location.href);
-  url.searchParams.set("config", encoded);
+  url.searchParams.set("share", hash);
   navigator.clipboard.writeText(url.toString());
 }
 
