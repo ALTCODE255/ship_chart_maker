@@ -342,17 +342,29 @@ async function compressToBase64(text) {
     .stream()
     .pipeThrough(new CompressionStream("gzip"));
   const buffer = await new Response(stream).arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+
+  // Break into 32KB chunks
+  const chunkSize = 32 * 1024;
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
 
   // Convert the compressed data to base64
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  const base64 = btoa(binary);
 
   // Convert to base64url
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-async function decompressFrombase64(data) {
+async function decompressFrombase64(base64url) {
   // Convert from base64url to base64
-  const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = base64url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd(Math.ceil(base64url.length / 4) * 4, "=");
 
   // Decode base64 to compressed binary data
   const buffer = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
