@@ -173,11 +173,14 @@ function updateCharCount(value) {
     // Create icon
     const icon = document.createElement("img");
     icon.className = "icon";
-    icon.src = "./unknown.png";
     icon.setAttribute("data-bs-toggle", "tooltip");
     icon.setAttribute("data-bs-title", i + 1);
     icon.addEventListener("click", () => selectChar(i));
     circle.appendChild(icon);
+
+    // Restore previous image if exists
+    if (i < icons.length && icons[i]) icon.src = icons[i].src;
+    else icon.src = "./unknown.png";
 
     // insert label before input
     const label = document.createTextNode(`${i + 1}: `);
@@ -188,9 +191,12 @@ function updateCharCount(value) {
     input.style.width = "min(calc(75%), 30em)";
     input.className = "icon_src";
     input.type = "text";
-    input.value = "./unknown.png";
     input.addEventListener("change", () => updateImageSrc(i, input.value));
     iconSrcInput.appendChild(input);
+
+    // Restore previous input value if exists
+    if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
+    else input.value = "./unknown.png";
 
     // Create arrows for rearranging
     const upButton = document.createElement("button");
