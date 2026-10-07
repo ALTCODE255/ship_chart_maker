@@ -37,8 +37,8 @@
                         <li>Multiple lines of different colors can connect the same two characters.</li>
                     </ul>
                 </li>
-                <li>Click "Export Chart Image" to download the chart as a PNG image.</li>
-                <li>Click "Copy Config URL" to generate a URL to recreate the current configuration with legend labels and images.</li>
+                <li>Click "Download Chart Image" to download the chart as a PNG image.</li>
+                <li>Optionally, export the config using "Export Config File" or "Copy Shareable Link" to share your configuration with others!
             </ol>
         </details>
 
@@ -60,8 +60,14 @@
             <button onclick="reset();" class="btn my-1 btn-danger">Reset</button>
             <button onclick="clearCharacters();" class="btn my-1 btn-danger">Clear Images</button>
             <button onclick="clearAllLines();" class="btn my-1 btn-danger">Clear Lines</button>
-            <button onclick="exportChart();" class="btn my-1 btn-primary">Export Chart Image</button>
-            <button onclick="exportConfig();" class="btn my-1 btn-primary">Copy Config URL</button>
+            <br>
+            <input type="file" id="configFile" accept=".json" class="d-none" onchange="uploadConfig(this);">
+            <button onclick="document.getElementById('configFile').click();" class="btn my-1 btn-primary">Import Config
+                File</button>
+            <button onclick="downloadConfig();" class="btn my-1 btn-primary">Export Config File</button>
+            <button onclick="exportConfigAsUrl();" class="btn my-1 btn-primary">Copy Shareable URL</button>
+            <br>
+            <button onclick="exportChart();" class="btn my-1 btn-primary">Download Chart Image</button>
         </div>
         <details>
             <summary>Edit Images</summary>

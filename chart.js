@@ -227,6 +227,26 @@ document.getElementById("chart-form").addEventListener("submit", (e) => {
     const idx = charSel.value - 1 + i;
     if (idx >= charSel.max) return;
 
+    // // Resize each image to 100x100
+    // const img = new Image();
+    // img.onload = () => {
+    //   const canvas = document.createElement("canvas");
+    //   canvas.width = 100;
+    //   canvas.height = 100;
+    //   const ctx = canvas.getContext("2d");
+    //   ctx.drawImage(img, 0, 0, 100, 100);
+
+    //   const base64 = canvas.toDataURL("image/webp", 0.85);
+
+    //   // Store base64 in icons array
+    //   icons[idx].src = base64;
+    //   icon_srcs[idx].value = base64;
+
+    //   URL.revokeObjectURL(img.src);
+    // };
+
+    // img.src = URL.createObjectURL(file);
+
     // Create a temporary URL for the uploaded file
     const imageSrc = URL.createObjectURL(file);
     icons[idx].src = imageSrc;
@@ -333,7 +353,7 @@ function removeLastLegendEntry() {
 }
 
 // ─────────────────────────────────────────────
-// Export and Import Config via URL
+// Export and Import Config
 // ─────────────────────────────────────────────
 
 async function createShare(base64Data) {
@@ -400,6 +420,39 @@ async function decompressFrombase64(base64) {
   return await new Response(stream).text();
 }
 
+function readJsonToConfig(json) {
+  updateCharCount(json.char_count);
+  charCount.value = json.char_count;
+  strokeInput.value = strokeWidth = json.line_width;
+
+  deleteLegend();
+  json.legend.forEach((e) => {
+    if (e.color && e.label && CSS.supports("color", e.color)) {
+      addLegendEntry(e.color, e.label);
+    }
+  });
+
+  clearImages();
+  json.images.forEach((src, i) => {
+    if (icons[i]) {
+      icons[i].src = src;
+      icon_srcs[i].value = src;
+    }
+  });
+}
+
+function uploadConfig(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    const json_str = event.target.result;
+    readJsonToConfig(JSON.parse(json_str));
+  };
+  reader.readAsText(file);
+}
+
 async function loadConfigFromURL() {
   const params = new URLSearchParams(window.location.search);
   const hash = params.get("share");
@@ -409,27 +462,10 @@ async function loadConfigFromURL() {
   if (!config) return;
   const json_data = JSON.parse(await decompressFrombase64(config));
 
-  updateCharCount(json_data.char_count);
-  charCount.value = json_data.char_count;
-  strokeInput.value = strokeWidth = json_data.line_width;
-
-  deleteLegend();
-  json_data.legend.forEach((e) => {
-    if (e.color && e.label && CSS.supports("color", e.color)) {
-      addLegendEntry(e.color, e.label);
-    }
-  });
-
-  clearImages();
-  json_data.images.forEach((src, i) => {
-    if (icons[i]) {
-      icons[i].src = src;
-      icon_srcs[i].value = src;
-    }
-  });
+  readJsonToConfig(json_data);
 }
 
-async function exportConfig() {
+function getConfigJson() {
   const legendEntries = Array.from(legendInput.children).map((entry) => {
     const color = entry.querySelector("input[type='color']").value;
     const label = entry.querySelector("input[type='text']").value;
@@ -437,7 +473,28 @@ async function exportConfig() {
   });
   const images = Array.from(icons).map((icon) => icon.src);
 
-  if (images.some((src) => src.startsWith("blob:"))) {
+  return {
+    char_count: charSel.max,
+    line_width: strokeWidth,
+    legend: legendEntries,
+    images: images,
+  };
+}
+
+function downloadConfig() {
+  const config = getConfigJson();
+  const link = document.createElement("a");
+  link.download = "ship-chart-config.json";
+  link.href =
+    "data:text/json;charset=utf-8," +
+    encodeURIComponent(JSON.stringify(config, null, 2));
+  link.click();
+}
+
+async function exportConfigAsUrl() {
+  const payload = getConfigJson();
+
+  if (payload.images.some((src) => src.startsWith("blob:"))) {
     alert(
       "Local uploaded images (blob URLs) are not shareable. " +
         "Replace them with external URLs in 'Edit Images' and try again.",
@@ -446,13 +503,6 @@ async function exportConfig() {
   }
 
   alert("Copied to clipboard!\n");
-
-  const payload = {
-    char_count: charSel.max,
-    line_width: strokeWidth,
-    legend: legendEntries,
-    images: images,
-  };
 
   // Compress and encode the config to base64
   const base64 = await compressToBase64(JSON.stringify(payload));
@@ -466,7 +516,7 @@ async function exportConfig() {
 }
 
 function init() {
-  updateCharCount(10);
+  updateCharCount(charCount.value);
   createLegend();
   loadConfigFromURL();
 }
