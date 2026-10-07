@@ -31,7 +31,15 @@ const state = {
   selectedChar: null,
   ships: [],
   images: [],
+  positions: [],
   legend: [],
+};
+
+const circle_math = {
+  cx: circle.getBoundingClientRect().width / 2,
+  cy: circle.getBoundingClientRect().height / 2,
+  radius:
+    parseFloat(getComputedStyle(circle).getPropertyValue("--radius")) * 1.5,
 };
 
 // ─────────────────────────────────────────────
@@ -95,15 +103,6 @@ function selectChar(index) {
   state.selectedChar = null;
 }
 
-// Get center coordinates of bounding rectangle
-function getCenter(rect) {
-  const parent = circle.getBoundingClientRect();
-  return [
-    rect.left + rect.width / 2 - parent.left,
-    rect.top + rect.height / 2 - parent.top,
-  ];
-}
-
 // Draw a line between two given characters
 function drawShipLine(char1, char2, color, path_offset) {
   const icon1 = state.images[char1].img;
@@ -111,13 +110,9 @@ function drawShipLine(char1, char2, color, path_offset) {
 
   if (!icon1 || !icon2) return;
 
-  // Parent rectangle center
-  const parent = circle.getBoundingClientRect();
-  const [rx, ry] = [parent.width / 2, parent.height / 2];
-
   // Get center (x, y) positions of both icons
-  const [x1, y1] = getCenter(icon1.getBoundingClientRect());
-  const [x2, y2] = getCenter(icon2.getBoundingClientRect());
+  const [x1, y1] = [state.positions[char1].x, state.positions[char1].y];
+  const [x2, y2] = [state.positions[char2].x, state.positions[char2].y];
 
   // Midpoint
   const [mx, my] = [(x1 + x2) / 2, (y1 + y2) / 2];
@@ -130,7 +125,7 @@ function drawShipLine(char1, char2, color, path_offset) {
   const offset = Math.min(7500 / length, 150);
 
   // Angle of vector that points from midpoint to center of circle
-  const theta = Math.atan2(ry - my, rx - mx);
+  const theta = Math.atan2(circle_math.cy - my, circle_math.cx - mx);
 
   // Control point
   const cx = mx + offset * Math.cos(theta);
@@ -226,12 +221,21 @@ function updateCharCount(value) {
     state.selectedChar = null;
   }
 
-  // Fix positions of icons on circle
+  state.positions = [];
+
+  // Arrange icons on circle
   for (let i = 0; i < state.images.length; i++) {
     const img = state.images[i].img;
     const angle = (360 / count) * i;
     img.style.setProperty("--total-num", count);
     img.style.setProperty("--angle", `${angle}deg`);
+
+    // Precompute positions
+    const radians = (angle * Math.PI) / 180;
+    state.positions.push({
+      x: circle_math.cx + circle_math.radius * Math.sin(radians),
+      y: circle_math.cy - circle_math.radius * Math.cos(radians),
+    });
   }
 
   // Redraw ship lines
