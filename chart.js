@@ -30,7 +30,7 @@ let ships = [];
 
 // Count SVG paths between same two characters
 function countLines(list, target) {
-  return list.filter((arr) => arr[0] == target[0] && arr[1] == target[1])
+  return list.filter((arr) => arr[0] === target[0] && arr[1] === target[1])
     .length;
 }
 
@@ -44,7 +44,7 @@ function selectChar(index) {
   const char = icons[index];
 
   // First character
-  if (selectedChar == null) {
+  if (selectedChar === null) {
     selectedChar = index;
     char.style.setProperty("--color", strokeColor);
     char.classList.add("selected");
@@ -52,7 +52,7 @@ function selectChar(index) {
   }
 
   // Clicking the same character deselects it
-  if (selectedChar == index) {
+  if (selectedChar === index) {
     char.classList.remove("selected");
     selectedChar = null;
     return;
@@ -135,7 +135,7 @@ function drawShipLine(char1, char2, color, path_offset) {
   path.addEventListener("click", () => {
     path.remove();
     const index = ships.findIndex(
-      (ship) => ship[0] == char1 && ship[1] == char2 && ship[2] == color,
+      (ship) => ship[0] === char1 && ship[1] === char2 && ship[2] === color,
     );
 
     if (index != -1) ships.splice(index, 1);
