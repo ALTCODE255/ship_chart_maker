@@ -58,7 +58,7 @@
 
         <div id="buttons" class="my-2">
             <button onclick="reset();" class="btn my-1 btn-danger">Reset</button>
-            <button onclick="clearCharacters();" class="btn my-1 btn-danger">Clear Images</button>
+            <button onclick="clearImages();" class="btn my-1 btn-danger">Clear Images</button>
             <button onclick="clearAllLines();" class="btn my-1 btn-danger">Clear Lines</button>
             <br>
             <input type="file" id="configFile" accept=".json" class="d-none" onchange="uploadConfig(this);">
@@ -91,7 +91,7 @@
         <div id="ship-chart" class="d-inline-flex gap-3 ps-2 p-4">
             <div class="vstack legend" id="legend"></div>
             <div id="circle" class="ms-5">
-                <svg class="ship-lines"></svg>
+                <svg id="ship-lines"></svg>
             </div>
         </div>
 

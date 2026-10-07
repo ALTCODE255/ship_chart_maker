@@ -12,6 +12,7 @@ const iconSrcInput = document.getElementById("image-srcs");
 const currentColor = document.getElementById("current-color");
 const chartForm = document.getElementById("chart-form");
 const avatarSel = document.getElementById("avatar-sel");
+const svg = document.getElementById("ship-lines");
 
 // ─────────────────────────────────────────────
 // State
@@ -24,63 +25,74 @@ const DEFAULTS = {
   characterCount: 10,
 };
 
-let strokeColor = DEFAULTS.strokeColor;
-let strokeWidth = Number(strokeInput.value) || DEFAULTS.strokeWidth;
-let icons = [];
-let icon_srcs = [];
-let selectedChar = null;
-let ships = [];
+const state = {
+  strokeColor: DEFAULTS.strokeColor,
+  strokeWidth: Number(strokeInput.value) || DEFAULTS.strokeWidth,
+  selectedChar: null,
+  ships: [],
+  images: [],
+  legend: [],
+};
 
 // ─────────────────────────────────────────────
 // Character Selection and Ship Lines
 // ─────────────────────────────────────────────
 
 // Count SVG paths between same two characters
-function countLines(list, target) {
-  return list.filter((arr) => arr[0] === target[0] && arr[1] === target[1])
-    .length;
+function countLines(char1, char2) {
+  return state.ships.filter(
+    (ship) => ship.char1 === char1 && ship.char2 === char2,
+  ).length;
 }
 
-// Check if array "target" is subset of array "list"
-function hasArray(list, target) {
-  return list.some((item) => item.every((value, i) => value === target[i]));
+// Check if ship already exists
+function hasShip(char1, char2, color) {
+  return state.ships.some(
+    (ship) =>
+      ship.char1 === char1 && ship.char2 === char2 && ship.color === color,
+  );
 }
 
 // Select a character to attach path to
 function selectChar(index) {
-  const char = icons[index];
+  const char = state.images[index].img;
 
   // First character
-  if (selectedChar === null) {
-    selectedChar = index;
-    char.style.setProperty("--color", strokeColor);
+  if (state.selectedChar === null) {
+    state.selectedChar = index;
+    char.style.setProperty("--color", state.strokeColor);
     char.classList.add("selected");
     return;
   }
 
   // Clicking the same character deselects it
-  if (selectedChar === index) {
+  if (state.selectedChar === index) {
     char.classList.remove("selected");
-    selectedChar = null;
+    state.selectedChar = null;
     return;
   }
 
   // Second character -> create ship line
 
   // Make sure order doesn't matter
-  const char1 = Math.max(selectedChar, index);
-  const char2 = Math.min(selectedChar, index);
+  const char1 = Math.min(state.selectedChar, index);
+  const char2 = Math.max(state.selectedChar, index);
 
-  if (!hasArray(ships, [char1, char2, strokeColor])) {
-    const path_offset = countLines(ships, [char1, char2]);
-    ships.push([char1, char2, strokeColor]);
+  if (!hasShip(char1, char2, state.strokeColor)) {
+    const path_offset = countLines(char1, char2);
+    state.ships.push({
+      char1,
+      char2,
+      color: state.strokeColor,
+      offset: path_offset,
+    });
 
-    drawShipLine(char1, char2, strokeColor, path_offset);
+    drawShipLine(char1, char2, state.strokeColor, path_offset);
   }
 
   // Remove selection
-  icons[selectedChar].classList.remove("selected");
-  selectedChar = null;
+  state.images[state.selectedChar].img.classList.remove("selected");
+  state.selectedChar = null;
 }
 
 // Get center coordinates of bounding rectangle
@@ -94,17 +106,14 @@ function getCenter(rect) {
 
 // Draw a line between two given characters
 function drawShipLine(char1, char2, color, path_offset) {
-  const svg = circle.querySelector(".ship-lines");
-  const icon1 = icons[char1];
-  const icon2 = icons[char2];
+  const icon1 = state.images[char1].img;
+  const icon2 = state.images[char2].img;
 
   if (!icon1 || !icon2) return;
 
   // Parent rectangle center
-  const [rx, ry] = [
-    circle.getBoundingClientRect().width / 2,
-    circle.getBoundingClientRect().height / 2,
-  ];
+  const parent = circle.getBoundingClientRect();
+  const [rx, ry] = [parent.width / 2, parent.height / 2];
 
   // Get center (x, y) positions of both icons
   const [x1, y1] = getCenter(icon1.getBoundingClientRect());
@@ -118,7 +127,7 @@ function drawShipLine(char1, char2, color, path_offset) {
 
   // Curvature inversely proportional to line length
   const length = Math.hypot(dx, dy);
-  const offset = 7500 / length;
+  const offset = Math.min(7500 / length, 150);
 
   // Angle of vector that points from midpoint to center of circle
   const theta = Math.atan2(ry - my, rx - mx);
@@ -128,43 +137,58 @@ function drawShipLine(char1, char2, color, path_offset) {
   const cy = my + offset * Math.sin(theta);
 
   // Translation offset (to avoid stacking paths)
-  const tx = path_offset * strokeWidth * Math.cos(theta);
-  const ty = path_offset * strokeWidth * Math.sin(theta);
+  const tx = path_offset * state.strokeWidth * Math.cos(theta);
+  const ty = path_offset * state.strokeWidth * Math.sin(theta);
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
   path.setAttribute("d", `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
   path.setAttribute("fill", "none");
   path.setAttribute("stroke", color);
-  path.setAttribute("stroke-width", strokeWidth);
+  path.setAttribute("stroke-width", state.strokeWidth);
   path.setAttribute("transform", `translate(${tx}, ${ty})`);
 
   path.addEventListener("click", () => {
     path.remove();
-    const index = ships.findIndex(
-      (ship) => ship[0] === char1 && ship[1] === char2 && ship[2] === color,
+    const index = state.ships.findIndex(
+      (ship) =>
+        ship.char1 === char1 && ship.char2 === char2 && ship.color === color,
     );
 
-    if (index != -1) ships.splice(index, 1);
+    if (index != -1) state.ships.splice(index, 1);
   });
 
   svg.appendChild(path);
 }
 
+// Redraw ship lines after a layout change
+function redrawLines() {
+  svg.replaceChildren();
+  // Filter out invalid ships
+  state.ships = state.ships.filter(({ char1, char2, color, offset }) => {
+    if (state.images[char1] && state.images[char2]) {
+      drawShipLine(char1, char2, color, offset);
+      return true;
+    }
+    return false;
+  });
+}
+
 // Update stroke width on input
 strokeInput.addEventListener("input", () => {
   const value = Number(strokeInput.value);
-  if (value <= 0) {
-    return;
-  }
-  strokeWidth = value;
+  if (value <= 0) return;
+  state.strokeWidth = value;
 });
 
 // Clear drawn ship lines
 function clearAllLines() {
-  const svg = circle.querySelector(".ship-lines");
   svg.replaceChildren();
-  ships = [];
+  state.ships = [];
+  if (state.selectedChar !== null) {
+    state.images[state.selectedChar].img.classList.remove("selected");
+    state.selectedChar = null;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -173,52 +197,63 @@ function clearAllLines() {
 
 // Update number of images in circle based on user input
 function updateCharCount(value) {
-  selectedChar = null;
-  ships = [];
-
   const count = (charSel.max = Math.min(value, charCount.max));
 
-  // Clear existing elements
-  circle.replaceChildren();
-  iconSrcInput.replaceChildren();
-
-  // Create SVG
-  const shipLines = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "svg",
-  );
-  shipLines.setAttribute("class", "ship-lines");
-  circle.appendChild(shipLines);
-
-  // Create count images
-  for (let i = 0; i < count; i++) {
-    createIcon(i, count);
-    createIconSourceInput(i);
+  // Add icons until desired count is reached
+  while (state.images.length < count) {
+    const idx = state.images.length;
+    const img = createIcon(idx);
+    const input = createIconSourceInput(idx);
+    state.images.push({ src: DEFAULTS.image, img, input });
   }
 
-  icons = Array.from(circle.querySelectorAll(".icon"));
-  [...icons].map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
-  icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
+  // Remove icons until desired count is reached
+  while (state.images.length > count) {
+    const removed = state.images.pop();
+    // Revoke blob
+    if (removed.src.startsWith("blob:")) URL.revokeObjectURL(removed.src);
+
+    // Revoke tooltip
+    const tooltip = bootstrap.Tooltip.getInstance(removed.img);
+    tooltip?.dispose();
+
+    circle.removeChild(removed.img);
+    iconSrcInput.removeChild(removed.input.parentElement);
+  }
+
+  // Remove selection if above count
+  if (state.selectedChar !== null && state.selectedChar >= count) {
+    state.selectedChar = null;
+  }
+
+  // Fix positions of icons on circle
+  for (let i = 0; i < state.images.length; i++) {
+    const img = state.images[i].img;
+    const angle = (360 / count) * i;
+    img.style.setProperty("--total-num", count);
+    img.style.setProperty("--angle", `${angle}deg`);
+  }
+
+  // Redraw ship lines
+  redrawLines();
 }
 
-function createIcon(i, count) {
+function createIcon(i) {
   // Create image for icon
   const icon = document.createElement("img");
+  icon.src = DEFAULTS.image;
   icon.className = "icon";
-  icon.setAttribute("data-bs-toggle", "tooltip");
-  icon.setAttribute("data-bs-title", i + 1);
+
+  // Select on click
   icon.addEventListener("click", () => selectChar(i));
 
-  // Position image on circle
-  const angle = (360 / count) * i;
-  icon.style.setProperty("--total-num", count);
-  icon.style.setProperty("--angle", `${angle}deg`);
-
-  // Restore previous image if exists
-  if (i < icons.length && icons[i]) icon.src = icons[i].src;
-  else icon.src = DEFAULTS.image;
+  // Enable tooltip
+  icon.setAttribute("data-bs-toggle", "tooltip");
+  icon.setAttribute("data-bs-title", i + 1);
+  new bootstrap.Tooltip(icon);
 
   circle.appendChild(icon);
+  return icon;
 }
 
 // Create input row for images
@@ -235,12 +270,9 @@ function createIconSourceInput(i) {
   input.style.width = "min(calc(75%), 30em)";
   input.className = "icon_src";
   input.type = "text";
-  input.addEventListener("change", () => updateImageSrc(i, input.value));
+  input.value = DEFAULTS.image;
+  input.addEventListener("change", () => setImageSrc(i, input.value));
   row.appendChild(input);
-
-  // Restore previous input value if exists
-  if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
-  else input.value = DEFAULTS.image;
 
   // Create arrows for rearranging
   const upButton = document.createElement("button");
@@ -259,66 +291,69 @@ function createIconSourceInput(i) {
   const linebreak = document.createElement("br");
   row.appendChild(linebreak);
   iconSrcInput.appendChild(row);
+
+  return input;
 }
 
 // Shift position of image
 function moveImagePos(idx, dir) {
   const newIdx = idx + dir;
 
-  if (newIdx < 0 || newIdx >= icons.length) {
+  if (newIdx < 0 || newIdx >= state.images.length) {
     return;
   }
 
-  // Swap icon sources
-  [icons[idx].src, icons[newIdx].src] = [icons[newIdx].src, icons[idx].src];
+  const img1 = state.images[idx];
+  const img2 = state.images[newIdx];
 
-  // Swap input row values
-  [icon_srcs[idx].value, icon_srcs[newIdx].value] = [
-    icon_srcs[newIdx].value,
-    icon_srcs[idx].value,
-  ];
+  [img1.src, img2.src] = [img2.src, img1.src];
+  [img1.img.src, img2.img.src] = [img2.img.src, img1.img.src];
+  [img1.input.value, img2.input.value] = [img2.input.value, img1.input.value];
+
+  state.ships.forEach((ship) => {
+    if (ship.char1 === idx) ship.char1 = newIdx;
+    else if (ship.char1 === newIdx) ship.char1 = idx;
+
+    if (ship.char2 === idx) ship.char2 = newIdx;
+    else if (ship.char2 === newIdx) ship.char2 = idx;
+
+    if (ship.char1 > ship.char2) {
+      [ship.char1, ship.char2] = [ship.char2, ship.char1];
+    }
+  });
+  redrawLines();
 }
 
 // Clear character images
 function clearImages() {
-  icons.forEach((icon) => (icon.src = DEFAULTS.image));
+  for (let i = 0; i < state.images.length; i++) {
+    setImageSrc(i, DEFAULTS.image);
+  }
 }
 
-function updateImageSrc(idx, value) {
-  icons[idx].src = value;
+function setImageSrc(idx, value) {
+  const image = state.images[idx];
+  const oldValue = image.src;
+
+  if (oldValue === value) return;
+
+  if (oldValue.startsWith("blob:")) {
+    URL.revokeObjectURL(oldValue);
+  }
+
+  image.src = image.img.src = image.input.value = value;
 }
 
 // Upload images
-document.getElementById("chart-form").addEventListener("submit", (e) => {
+chartForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  Array.from(avatarSel.files).forEach(async (file, i) => {
+  Array.from(avatarSel.files).forEach((file, i) => {
     const idx = charSel.value - 1 + i;
     if (idx >= charSel.max) return;
 
-    // // Resize each image to 100x100
-    // const img = new Image();
-    // img.onload = () => {
-    //   const canvas = document.createElement("canvas");
-    //   canvas.width = 100;
-    //   canvas.height = 100;
-    //   const ctx = canvas.getContext("2d");
-    //   ctx.drawImage(img, 0, 0, 100, 100);
-
-    //   const base64 = canvas.toDataURL("image/webp", 0.85);
-
-    //   // Store base64 in icons array
-    //   icons[idx].src = base64;
-    //   icon_srcs[idx].value = base64;
-
-    //   URL.revokeObjectURL(img.src);
-    // };
-
-    // img.src = URL.createObjectURL(file);
-
     // Create a temporary URL for the uploaded file
     const imageSrc = URL.createObjectURL(file);
-    icons[idx].src = imageSrc;
-    icon_srcs[idx].value = imageSrc;
+    setImageSrc(idx, imageSrc);
   });
 });
 
@@ -336,6 +371,7 @@ async function exportChart() {
 // ─────────────────────────────────────────────
 
 function deleteLegend() {
+  state.legend = [];
   legendInput.replaceChildren();
   legend.replaceChildren();
 }
@@ -352,25 +388,24 @@ function createLegend() {
 
 // Update legend for a specific entry
 function updateLegend(idx) {
-  const color = document.querySelector(
-    `input[type='color'][data-index='${idx}']`,
-  ).value;
-  const label = document.querySelector(
-    `input[type='text'][data-index='${idx}']`,
-  ).value;
-  const swatch = document.querySelector(`.swatch[data-index='${idx}']`);
-  swatch.style.setProperty("--color", color);
-  swatch.nextSibling.textContent = ` ${label}`;
+  const entry = state.legend[idx];
+  entry.color = entry.input.querySelector("input[type='color']").value;
+  entry.label = entry.input.querySelector("input[type='text']").value;
+
+  const swatch = entry.display.querySelector(".swatch");
+
+  swatch.style.setProperty("--color", entry.color);
+  swatch.nextSibling.textContent = ` ${entry.label}`;
 }
 
 // Update global stroke color
 function updateColor(color) {
-  strokeColor = color;
-  document
-    .getElementById("current-color")
-    .style.setProperty("--color", strokeColor);
-  if (selectedChar != null)
-    icons[selectedChar].style.setProperty("--color", strokeColor);
+  state.strokeColor = color;
+  currentColor.style.setProperty("--color", color);
+
+  if (state.selectedChar !== null) {
+    state.images[state.selectedChar]?.img.style.setProperty("--color", color);
+  }
 }
 
 function addLegendEntry(color = "#ffffff", label = "Label") {
@@ -384,14 +419,12 @@ function addLegendEntry(color = "#ffffff", label = "Label") {
   const colorInput = document.createElement("input");
   colorInput.type = "color";
   colorInput.value = color;
-  colorInput.dataset.index = idx;
 
   const labelInput = document.createElement("input");
   labelInput.style.width = "min(calc(90%), 30em)";
   labelInput.type = "text";
   labelInput.placeholder = "Label";
   labelInput.value = label;
-  labelInput.dataset.index = idx;
 
   entry.append(colorInput, labelInput);
   legendInput.appendChild(entry);
@@ -402,7 +435,6 @@ function addLegendEntry(color = "#ffffff", label = "Label") {
 
   const button = document.createElement("button");
   button.className = "swatch";
-  button.dataset.index = idx;
   button.type = "button";
   button.style.setProperty("--color", color);
   button.addEventListener("click", () =>
@@ -412,12 +444,16 @@ function addLegendEntry(color = "#ffffff", label = "Label") {
   const labelText = document.createTextNode(" " + label);
   item.append(button, labelText);
   legend.appendChild(item);
+
+  state.legend.push({ color, label, input: entry, display: item });
 }
 
 function removeLastLegendEntry() {
-  if (!legend.lastElementChild) return;
-  legendInput.removeChild(legendInput.lastElementChild);
-  legend.removeChild(legend.lastElementChild);
+  const removed = state.legend.pop();
+  if (removed) {
+    legendInput.removeChild(removed.input);
+    legend.removeChild(removed.display);
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -491,7 +527,7 @@ async function decompressFrombase64(base64) {
 function readJsonToConfig(json) {
   updateCharCount(json.char_count);
   charCount.value = json.char_count;
-  strokeInput.value = strokeWidth = json.line_width;
+  strokeInput.value = state.strokeWidth = json.line_width;
 
   deleteLegend();
   json.legend.forEach((e) => {
@@ -502,10 +538,7 @@ function readJsonToConfig(json) {
 
   clearImages();
   json.images.forEach((src, i) => {
-    if (icons[i]) {
-      icons[i].src = src;
-      icon_srcs[i].value = src;
-    }
+    if (state.images[i]) setImageSrc(i, src);
   });
 }
 
@@ -534,18 +567,13 @@ async function loadConfigFromURL() {
 }
 
 function getConfigJson() {
-  const legendEntries = Array.from(legendInput.children).map((entry) => {
-    const color = entry.querySelector("input[type='color']").value;
-    const label = entry.querySelector("input[type='text']").value;
-    return { color, label };
-  });
-  const images = Array.from(icons).map((icon) => icon.src);
-
   return {
     char_count: charSel.max,
-    line_width: strokeWidth,
-    legend: legendEntries,
-    images: images,
+    line_width: state.strokeWidth,
+    legend: Array.from(
+      state.legend.map((entry) => ({ color: entry.color, label: entry.label })),
+    ),
+    images: Array.from(state.images.map((image) => image.src)),
   };
 }
 
@@ -593,11 +621,8 @@ function reset() {
   clearAllLines();
   deleteLegend();
   updateCharCount(DEFAULTS.characterCount);
-  strokeInput.value = strokeWidth = DEFAULTS.strokeWidth;
-  strokeColor = DEFAULTS.strokeColor;
-  document
-    .getElementById("current-color")
-    .style.setProperty("--color", strokeColor);
+  updateColor(DEFAULTS.strokeColor);
+  strokeInput.value = state.strokeWidth = DEFAULTS.strokeWidth;
   const url = new URL(window.location);
   url.searchParams.delete("share");
   window.history.replaceState({}, document.title, url.toString());

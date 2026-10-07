@@ -55,7 +55,7 @@
   box-shadow: 0 0 0 3px var(--color) !important;
 }
 
-.ship-lines {
+#ship-lines {
   position: absolute;
   inset: 0;
   width: 100%;
