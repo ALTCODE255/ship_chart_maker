@@ -1,3 +1,7 @@
+// ─────────────────────────────────────────────
+// DOM Elements
+// ─────────────────────────────────────────────
+
 const circle = document.getElementById("circle");
 const charCount = document.getElementById("char-ct");
 const charSel = document.getElementById("char-sel");
@@ -30,8 +34,9 @@ function countLines(list, target) {
     .length;
 }
 
+// Check if array "target" is subset of array "list"
 function hasArray(list, target) {
-  return list.some((arr) => arr.every((value, i) => value === target[i]));
+  return list.some((item) => item.every((value, i) => value === target[i]));
 }
 
 // Select a character to attach path to
@@ -60,10 +65,10 @@ function selectChar(index) {
   const char2 = Math.min(selectedChar, index);
 
   if (!hasArray(ships, [char1, char2, strokeColor])) {
-    const dupe_ct = countLines(ships, [char1, char2]);
+    const path_offset = countLines(ships, [char1, char2]);
     ships.push([char1, char2, strokeColor]);
 
-    drawShipLine(char1, char2, strokeColor, dupe_ct);
+    drawShipLine(char1, char2, strokeColor, path_offset);
   }
 
   // Remove selection
@@ -171,64 +176,73 @@ function updateCharCount(value) {
 
   // Create count images
   for (let i = 0; i < count; i++) {
-    // Create image for icon
-    const icon = document.createElement("img");
-    icon.className = "icon";
-    icon.setAttribute("data-bs-toggle", "tooltip");
-    icon.setAttribute("data-bs-title", i + 1);
-    icon.addEventListener("click", () => selectChar(i));
-    circle.appendChild(icon);
-
-    // Position image on circle
-    const angle = (360 / count) * i;
-    icon.style.setProperty("--total-num", count);
-    icon.style.setProperty("--angle", `${angle}deg`);
-
-    // Restore previous image if exists
-    if (i < icons.length && icons[i]) icon.src = icons[i].src;
-    else icon.src = "./unknown.png";
-
-    const row = document.createElement("div");
-    row.className = "input_row";
-
-    // insert label before input
-    const label = document.createTextNode(`${i + 1}: `);
-    row.appendChild(label);
-
-    // Create image source input
-    const input = document.createElement("input");
-    input.style.width = "min(calc(75%), 30em)";
-    input.className = "icon_src";
-    input.type = "text";
-    input.addEventListener("change", () => updateImageSrc(i, input.value));
-    row.appendChild(input);
-
-    // Restore previous input value if exists
-    if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
-    else input.value = "./unknown.png";
-
-    // Create arrows for rearranging
-    const upButton = document.createElement("button");
-    upButton.textContent = " ↑ ";
-    upButton.title = "Move up";
-    upButton.addEventListener("click", () => moveImagePos(i, -1));
-
-    const downButton = document.createElement("button");
-    downButton.textContent = " ↓ ";
-    downButton.title = "Move down";
-    downButton.addEventListener("click", () => moveImagePos(i, 1));
-
-    row.appendChild(upButton);
-    row.appendChild(downButton);
-
-    const linebreak = document.createElement("br");
-    row.appendChild(linebreak);
-    iconSrcInput.appendChild(row);
+    createIcon(i, count);
+    createIconSourceInput(i);
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
   [...icons].map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
+}
+
+function createIcon(i, count) {
+  // Create image for icon
+  const icon = document.createElement("img");
+  icon.className = "icon";
+  icon.setAttribute("data-bs-toggle", "tooltip");
+  icon.setAttribute("data-bs-title", i + 1);
+  icon.addEventListener("click", () => selectChar(i));
+
+  // Position image on circle
+  const angle = (360 / count) * i;
+  icon.style.setProperty("--total-num", count);
+  icon.style.setProperty("--angle", `${angle}deg`);
+
+  // Restore previous image if exists
+  if (i < icons.length && icons[i]) icon.src = icons[i].src;
+  else icon.src = "./unknown.png";
+
+  circle.appendChild(icon);
+}
+
+// Create input row for images
+function createIconSourceInput(i) {
+  const row = document.createElement("div");
+  row.className = "input_row";
+
+  // insert label before input
+  const label = document.createTextNode(`${i + 1}: `);
+  row.appendChild(label);
+
+  // Create image source input
+  const input = document.createElement("input");
+  input.style.width = "min(calc(75%), 30em)";
+  input.className = "icon_src";
+  input.type = "text";
+  input.addEventListener("change", () => updateImageSrc(i, input.value));
+  row.appendChild(input);
+
+  // Restore previous input value if exists
+  if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
+  else input.value = "./unknown.png";
+
+  // Create arrows for rearranging
+  const upButton = document.createElement("button");
+  upButton.textContent = " ↑ ";
+  upButton.title = "Move up";
+  upButton.addEventListener("click", () => moveImagePos(i, -1));
+
+  const downButton = document.createElement("button");
+  downButton.textContent = " ↓ ";
+  downButton.title = "Move down";
+  downButton.addEventListener("click", () => moveImagePos(i, 1));
+
+  row.appendChild(upButton);
+  row.appendChild(downButton);
+
+  const linebreak = document.createElement("br");
+  row.appendChild(linebreak);
+  iconSrcInput.appendChild(row);
 }
 
 // Shift position of image
