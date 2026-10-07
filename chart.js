@@ -185,21 +185,33 @@ function updateCharCount(value) {
 
     // Create image source input
     const input = document.createElement("input");
-    input.style.width = "90%";
+    input.style.width = "min(calc(75%), 30em)";
     input.className = "icon_src";
     input.type = "text";
     input.value = "./unknown.png";
     input.addEventListener("change", () => updateImageSrc(i, input.value));
     iconSrcInput.appendChild(input);
 
+    // Create arrows for rearranging
+    const upButton = document.createElement("button");
+    upButton.textContent = " ↑ ";
+    upButton.title = "Move up";
+    upButton.addEventListener("click", () => moveImagePos(i, -1));
+
+    const downButton = document.createElement("button");
+    downButton.textContent = " ↓ ";
+    downButton.title = "Move down";
+    downButton.addEventListener("click", () => moveImagePos(i, 1));
+
+    iconSrcInput.appendChild(upButton);
+    iconSrcInput.appendChild(downButton);
+
     const linebreak = document.createElement("br");
     iconSrcInput.appendChild(linebreak);
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
-  [...icons].map(
-    (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
-  );
+  [...icons].map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
 
   // Position icons around the circle
@@ -209,6 +221,23 @@ function updateCharCount(value) {
     icon.style.setProperty("--total-num", icons.length);
     icon.style.setProperty("--angle", `${angle}deg`);
   });
+}
+
+function moveImagePos(idx, dir) {
+  const newIdx = idx + dir;
+
+  if (newIdx < 0 || newIdx >= icons.length) {
+    return;
+  }
+
+  // Swap icon sources
+  [icons[idx].src, icons[newIdx].src] = [icons[newIdx].src, icons[idx].src];
+
+  // Swap input row values
+  [icon_srcs[idx].value, icon_srcs[newIdx].value] = [
+    icon_srcs[newIdx].value,
+    icon_srcs[idx].value,
+  ];
 }
 
 // Clear character images
@@ -319,7 +348,7 @@ function addLegendEntry(color = "#ffffff", label = "Label") {
   colorInput.dataset.index = idx;
 
   const labelInput = document.createElement("input");
-  labelInput.className = "w-100";
+  labelInput.style.width = "min(calc(90%), 30em)";
   labelInput.type = "text";
   labelInput.placeholder = "Label";
   labelInput.value = label;
