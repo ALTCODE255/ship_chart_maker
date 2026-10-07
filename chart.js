@@ -17,8 +17,15 @@ const avatarSel = document.getElementById("avatar-sel");
 // State
 // ─────────────────────────────────────────────
 
-let strokeColor = "#FF0000";
-let strokeWidth = Number(strokeInput.value) || 2;
+const DEFAULTS = {
+  strokeColor: "#FF0000",
+  strokeWidth: 2,
+  image: "./unknown.png",
+  characterCount: 10,
+};
+
+let strokeColor = DEFAULTS.strokeColor;
+let strokeWidth = Number(strokeInput.value) || DEFAULTS.strokeWidth;
 let icons = [];
 let icon_srcs = [];
 let selectedChar = null;
@@ -144,6 +151,15 @@ function drawShipLine(char1, char2, color, path_offset) {
   svg.appendChild(path);
 }
 
+// Update stroke width on input
+strokeInput.addEventListener("input", () => {
+  const value = Number(strokeInput.value);
+  if (value <= 0) {
+    return;
+  }
+  strokeWidth = value;
+});
+
 // Clear drawn ship lines
 function clearAllLines() {
   const svg = circle.querySelector(".ship-lines");
@@ -200,7 +216,7 @@ function createIcon(i, count) {
 
   // Restore previous image if exists
   if (i < icons.length && icons[i]) icon.src = icons[i].src;
-  else icon.src = "./unknown.png";
+  else icon.src = DEFAULTS.image;
 
   circle.appendChild(icon);
 }
@@ -224,7 +240,7 @@ function createIconSourceInput(i) {
 
   // Restore previous input value if exists
   if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
-  else input.value = "./unknown.png";
+  else input.value = DEFAULTS.image;
 
   // Create arrows for rearranging
   const upButton = document.createElement("button");
@@ -265,7 +281,7 @@ function moveImagePos(idx, dir) {
 
 // Clear character images
 function clearImages() {
-  icons.forEach((icon) => (icon.src = "./unknown.png"));
+  icons.forEach((icon) => (icon.src = DEFAULTS.image));
 }
 
 function updateImageSrc(idx, value) {
@@ -577,14 +593,14 @@ function reset() {
   clearImages();
   clearAllLines();
   deleteLegend();
-  updateCharCount(10);
-  strokeInput.value = strokeWidth = 2;
-  strokeColor = "#FF0000";
+  updateCharCount(DEFAULTS.characterCount);
+  strokeInput.value = strokeWidth = DEFAULTS.strokeWidth;
+  strokeColor = DEFAULTS.strokeColor;
   document
     .getElementById("current-color")
     .style.setProperty("--color", strokeColor);
   const url = new URL(window.location);
-  url.searchParams.delete("config");
+  url.searchParams.delete("share");
   window.history.replaceState({}, document.title, url.toString());
   createLegend();
 }
