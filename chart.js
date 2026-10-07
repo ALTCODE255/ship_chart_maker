@@ -155,7 +155,7 @@ function updateCharCount(value) {
   selectedChar = null;
   ships = [];
 
-  charSel.max = Math.min(value, charCount.max);
+  const count = (charSel.max = Math.min(value, charCount.max));
 
   // Clear existing elements
   circle.replaceChildren();
@@ -169,8 +169,9 @@ function updateCharCount(value) {
   shipLines.setAttribute("class", "ship-lines");
   circle.appendChild(shipLines);
 
-  for (let i = 0; i < charSel.max; i++) {
-    // Create icon
+  // Create count images
+  for (let i = 0; i < count; i++) {
+    // Create image for icon
     const icon = document.createElement("img");
     icon.className = "icon";
     icon.setAttribute("data-bs-toggle", "tooltip");
@@ -178,13 +179,21 @@ function updateCharCount(value) {
     icon.addEventListener("click", () => selectChar(i));
     circle.appendChild(icon);
 
+    // Position image on circle
+    const angle = (360 / count) * i;
+    icon.style.setProperty("--total-num", count);
+    icon.style.setProperty("--angle", `${angle}deg`);
+
     // Restore previous image if exists
     if (i < icons.length && icons[i]) icon.src = icons[i].src;
     else icon.src = "./unknown.png";
 
+    const row = document.createElement("div");
+    row.className = "input_row";
+
     // insert label before input
     const label = document.createTextNode(`${i + 1}: `);
-    iconSrcInput.appendChild(label);
+    row.appendChild(label);
 
     // Create image source input
     const input = document.createElement("input");
@@ -192,7 +201,7 @@ function updateCharCount(value) {
     input.className = "icon_src";
     input.type = "text";
     input.addEventListener("change", () => updateImageSrc(i, input.value));
-    iconSrcInput.appendChild(input);
+    row.appendChild(input);
 
     // Restore previous input value if exists
     if (i < icon_srcs.length && icon_srcs[i]) input.value = icon_srcs[i].value;
@@ -209,26 +218,20 @@ function updateCharCount(value) {
     downButton.title = "Move down";
     downButton.addEventListener("click", () => moveImagePos(i, 1));
 
-    iconSrcInput.appendChild(upButton);
-    iconSrcInput.appendChild(downButton);
+    row.appendChild(upButton);
+    row.appendChild(downButton);
 
     const linebreak = document.createElement("br");
-    iconSrcInput.appendChild(linebreak);
+    row.appendChild(linebreak);
+    iconSrcInput.appendChild(row);
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
   [...icons].map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
-
-  // Position icons around the circle
-  icons.forEach((icon, i) => {
-    const angle = (360 / icons.length) * i;
-
-    icon.style.setProperty("--total-num", icons.length);
-    icon.style.setProperty("--angle", `${angle}deg`);
-  });
 }
 
+// Shift position of image
 function moveImagePos(idx, dir) {
   const newIdx = idx + dir;
 
