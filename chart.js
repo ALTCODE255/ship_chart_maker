@@ -570,8 +570,6 @@ async function exportConfigAsUrl() {
     return;
   }
 
-  alert("Copied to clipboard!\n");
-
   // Compress and encode the config to base64
   const base64 = await compressToBase64(JSON.stringify(payload));
 
@@ -581,6 +579,7 @@ async function exportConfigAsUrl() {
   const url = new URL(window.location.href);
   url.searchParams.set("share", hash);
   navigator.clipboard.writeText(url.toString());
+  alert("Copied to clipboard!\n");
 }
 
 function init() {
