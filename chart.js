@@ -197,7 +197,7 @@ function updateCharCount(value) {
   }
 
   icons = Array.from(circle.querySelectorAll(".icon"));
-  const tooltipList = [...icons].map(
+  [...icons].map(
     (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
   );
   icon_srcs = Array.from(iconSrcInput.querySelectorAll(".icon_src"));
